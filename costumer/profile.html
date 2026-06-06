@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Profil Saya | Padud Coffee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-cream: #FDFBF7;
+            --bg-secondary: #F4F1EA;
+            --primary-navy: #1A2B4C;
+            --primary-light: #2A4072;
+            --accent-gold: #D4AF37;
+            --text-dark: #1A2B4C;
+            --text-light: #7A869A;
+            --white: #FFFFFF;
+            --danger: #E53935;
+            --success: #43A047;
+            --shadow-sm: 0 4px 12px rgba(26, 43, 76, 0.04);
+            --shadow-md: 0 10px 24px rgba(26, 43, 76, 0.08);
+            --border-radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-cream); color: var(--text-dark); padding-bottom: 120px; }
+        a { text-decoration: none; color: inherit; }
+        button { border: none; background: none; cursor: pointer; outline: none; transition: var(--transition); }
+        
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header */
+        .header { position: sticky; top: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04); z-index: 100; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 18px; font-weight: 800; color: var(--primary-navy); }
+        .action-icon { font-size: 20px; color: var(--primary-navy); padding: 5px; }
+
+        .page-container { padding: 20px; max-width: 800px; margin: 0 auto; }
+
+        /* Profile Card */
+        .profile-card { background: var(--white); border-radius: var(--border-radius); padding: 25px; display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow-sm); margin-bottom: 25px; position: relative; overflow: hidden; }
+        .avatar-box { width: 70px; height: 70px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary-light); flex-shrink: 0; border: 2px solid var(--white); box-shadow: var(--shadow-sm); }
+        .profile-info { flex: 1; }
+        .profile-name { font-size: 20px; font-weight: 800; color: var(--primary-navy); margin-bottom: 4px; }
+        .profile-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(212, 175, 55, 0.1); color: var(--accent-gold); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .guest-badge { background: var(--bg-secondary); color: var(--text-light); }
+        
+        /* Sections */
+        .section-title { font-size: 16px; font-weight: 800; color: var(--primary-navy); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+        
+        /* Membership Banner (Guest) */
+        .join-banner { background: linear-gradient(135deg, var(--primary-navy) 0%, var(--primary-light) 100%); color: var(--white); border-radius: 16px; padding: 20px; margin-bottom: 25px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+        .join-banner::after { content: '\f0f4'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: -20px; bottom: -20px; font-size: 100px; opacity: 0.05; transform: rotate(-15deg); }
+        .join-list { margin: 15px 0; font-size: 13px; font-weight: 300; display: flex; flex-direction: column; gap: 8px; }
+        .join-list i { color: var(--accent-gold); width: 20px; }
+        .btn-join { display: block; width: 100%; text-align: center; background: var(--accent-gold); color: var(--white); padding: 14px; border-radius: 14px; font-size: 14px; font-weight: 700; margin-top: 15px; }
+
+        /* Points & Rewards */
+        .points-box { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .progress-container { background: var(--bg-secondary); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+        .progress-bar { background: var(--accent-gold); height: 100%; border-radius: 4px; width: 0%; transition: width 1s ease; }
+        .btn-outline { border: 1px solid var(--primary-navy); color: var(--primary-navy); padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+
+        /* Vouchers */
+        .voucher-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scroll-snap-type: x mandatory; }
+        .voucher-scroll::-webkit-scrollbar { display: none; }
+        .voucher-card { flex: 0 0 85%; scroll-snap-align: center; background: var(--bg-secondary); border: 1px dashed #ccc; border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Statistics */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-item { background: var(--bg-secondary); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 5px; }
+        .stat-val { font-size: 18px; font-weight: 800; color: var(--primary-navy); }
+        .stat-lbl { font-size: 11px; color: var(--text-light); font-weight: 600; }
+
+        /* Timeline */
+        .timeline { border-left: 2px solid var(--bg-secondary); margin-left: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .tl-item { position: relative; }
+        .tl-item::before { content: ''; position: absolute; left: -26.5px; top: 0; width: 10px; height: 10px; background: var(--primary-navy); border-radius: 50%; border: 2px solid var(--white); box-shadow: 0 0 0 2px var(--bg-secondary); }
+        .tl-title { font-size: 14px; font-weight: 700; color: var(--primary-navy); margin-bottom: 4px; }
+        .tl-desc { font-size: 12px; color: var(--text-light); }
+
+        /* Settings Menu */
+        .menu-list { display: flex; flex-direction: column; gap: 5px; }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--bg-secondary); cursor: pointer; }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-left { display: flex; align-items: center; gap: 15px; font-size: 15px; font-weight: 600; color: var(--primary-navy); }
+        .menu-icon { width: 35px; height: 35px; background: var(--bg-secondary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary-light); }
+        
+        /* Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-navy); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-logout { width: 100%; background: rgba(26,43,76,0.1); color: var(--primary-navy); padding: 16px; border-radius: 16px; font-size: 15px; font-weight: 800; margin-top: 30px; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-around; padding: 15px 0 calc(15px + env(safe-area-inset-bottom)); z-index: 100; border-top: 1px solid rgba(0, 0, 0, 0.02); }
+        .bnav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #9EABBf; font-size: 11px; width: 25%; font-weight: 500; }
+        .bnav-item.active { color: var(--primary-navy); }
+        .bnav-item i { font-size: 20px; transition: var(--transition); }
+        .bnav-item.active i { transform: translateY(-2px); }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); background: #333; color: white; padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 600; opacity: 0; visibility: hidden; transition: var(--transition); z-index: 2000; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); white-space: nowrap; }
+        .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+        /* Locked State */
+        .locked-content { filter: blur(3px); pointer-events: none; opacity: 0.6; user-select: none; }
+        .locked-wrapper { position: relative; }
+        .locked-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.4); border-radius: 16px; backdrop-filter: blur(1px); }
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <button class="action-icon" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+        <span class="page-title">Profil Saya</span>
+        <div style="width: 30px;"></div>
+    </header>
+
+    <div class="page-container fade-in">
+        
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="avatar-box">
+                <i class="fa-solid fa-user-astronaut"></i>
+            </div>
+            <div class="profile-info">
+                <div class="profile-name" id="ui-user-name">Guest Customer</div>
+                <div class="profile-badge guest-badge" id="ui-member-badge">
+                    <i class="fa-solid fa-user-shield"></i> Guest
+                </div>
+            </div>
+        </div>
+
+        <!-- Guest Banner -->
+        <div class="join-banner" id="guest-banner">
+            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 5px;">Bergabung Menjadi Member</h3>
+            <p style="font-size: 13px; opacity: 0.9;">Nikmati pengalaman ngopi yang lebih istimewa.</p>
+            <div class="join-list">
+                <div><i class="fa-solid fa-check"></i> Kumpulkan poin setiap transaksi</div>
+                <div><i class="fa-solid fa-check"></i> Tukarkan poin dengan minuman gratis</div>
+                <div><i class="fa-solid fa-check"></i> Akses promo eksklusif member</div>
+            </div>
+            <button class="btn-join" onclick="window.location.href='register.html'">Daftar Member Sekarang</button>
+        </div>
+
+        <!-- Reward & Point -->
+        <div class="locked-wrapper">
+            <div class="locked-overlay member-lock" onclick="showToast('Daftar member untuk membuka fitur ini!', true)">
+                <i class="fa-solid fa-lock" style="font-size: 24px; color: var(--primary-navy); margin-bottom: 10px;"></i>
+                <div style="font-size: 12px; font-weight: 800; color: var(--primary-navy); background: white; padding: 4px 12px; border-radius: 12px; box-shadow: var(--shadow-sm);">Fitur Khusus Member</div>
+            </div>
+            <div class="locked-content member-content">
+                <div class="section-title"><i class="fa-solid fa-gem text-gold"></i> Poin & Reward</div>
+                <div class="card">
+                    <div class="points-box">
+                        <div>
+                            <div style="font-size: 24px; font-weight: 800; color: var(--primary-navy);"><span id="ui-points">0</span> <span style="font-size: 14px; font-weight: 600; color: var(--text-light);">Poin</span></div>
+                            <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">Akan kedaluwarsa: 31 Des 2026</div>
+                        </div>
+                        <button class="btn-outline" onclick="showToast('Fitur Tukar Poin sedang dalam pengembangan')">Tukar Poin</button>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="ui-progress" style="width: 0%;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--text-light);">
+                        <span>Silver</span>
+                        <span style="color: var(--accent-gold);">Gold Member (75%)</span>
+                    </div>
+                </div>
+
+                <!-- Vouchers -->
+                <div class="section-title"><i class="fa-solid fa-ticket text-gold"></i> Voucher Saya</div>
+                <div class="voucher-scroll">
+                    <div class="voucher-card">
+                        <div>
+                            <div style="font-size: 14px; font-weight: 800; color: var(--primary-navy); margin-bottom: 4px;">Potongan 10RB</div>
+                            <div style="font-size: 11px; color: var(--text-light);">Berlaku s/d 30 Jun 2026</div>
+                        </div>
+                        <button style="background: var(--primary-navy); color: white; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 700;" onclick="showToast('Voucher disalin!')">Pakai</button>
+                    </div>
+                    <div class="voucher-card">
+                        <div>
+                            <div style="font-size: 14px; font-weight: 800; color: var(--primary-navy); margin-bottom: 4px;">Gratis Upsize</div>
+                            <div style="font-size: 11px; color: var(--text-light);">Berlaku s/d 15 Ags 2026</div>
+                        </div>
+                        <button style="background: var(--primary-navy); color: white; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 700;" onclick="showToast('Voucher disalin!')">Pakai</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="locked-wrapper" style="margin-top: 20px;">
+            <div class="locked-overlay member-lock" onclick="showToast('Daftar member untuk membuka fitur ini!', true)"></div>
+            <div class="locked-content member-content">
+                <div class="section-title"><i class="fa-solid fa-chart-pie"></i> Statistik Transaksi</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-val" id="ui-trans">0</span>
+                        <span class="stat-lbl">Total Pesanan</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-val" id="ui-spent">Rp 0K</span>
+                        <span class="stat-lbl">Total Pengeluaran</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-val" id="ui-point-earned">0</span>
+                        <span class="stat-lbl">Poin Diperoleh</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-val">2</span>
+                        <span class="stat-lbl">Voucher Aktif</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="locked-wrapper" style="margin-top: 25px;">
+            <div class="locked-overlay member-lock" onclick="showToast('Daftar member untuk membuka fitur ini!', true)"></div>
+            <div class="locked-content member-content">
+                <div class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Aktivitas Terbaru</div>
+                <div class="card">
+                    <div class="timeline">
+                        <div class="tl-item">
+                            <div class="tl-title">Pembayaran Berhasil</div>
+                            <div class="tl-desc">Pesanan ORD-20260605-1029 via QRIS.<br><span style="font-size:10px; color:#aaa;">Kemarin, 14:30</span></div>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-title">Poin Bertambah</div>
+                            <div class="tl-desc">+150 Poin dari transaksi.<br><span style="font-size:10px; color:#aaa;">Kemarin, 14:30</span></div>
+                        </div>
+                        <div class="tl-item">
+                            <div class="tl-title">Voucher Digunakan</div>
+                            <div class="tl-desc">Diskon Kilat 5RB pada ORD-20260601-9921.<br><span style="font-size:10px; color:#aaa;">01 Jun 2026, 10:15</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lainnya -->
+        <div style="margin-top: 25px;">
+            <div class="card" style="padding: 10px 20px;">
+                <div class="menu-list">
+                    <div class="menu-item" id="btn-edit-profile" onclick="showToast('Fitur ini khusus untuk Member!', true)">
+                        <div class="menu-left">
+                            <div class="menu-icon"><i class="fa-solid fa-user-pen"></i></div>
+                            <span id="ui-edit-text" style="color: var(--text-light);">Edit Profil <i class="fa-solid fa-lock" style="font-size:10px; margin-left:4px;"></i></span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color: var(--text-light); font-size: 14px;"></i>
+                    </div>
+                    <div class="menu-item">
+                        <div class="menu-left">
+                            <div class="menu-icon"><i class="fa-solid fa-bell"></i></div>
+                            <span>Notifikasi Pesanan</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="notif-toggle" checked onchange="toggleNotification()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <a href="https://wa.me/6281234567890" target="_blank" class="menu-item">
+                        <div class="menu-left">
+                            <div class="menu-icon" style="color: #25D366;"><i class="fa-brands fa-whatsapp"></i></div>
+                            <span>Customer Service (WA)</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color: var(--text-light); font-size: 14px;"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-logout" onclick="window.location.href='../index.html'">
+            <i class="fa-solid fa-house"></i> Kembali ke Halaman Utama
+        </button>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="menu.html" class="bnav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Beranda</span>
+        </a>
+        <a href="cart.html" class="bnav-item">
+            <i class="fa-solid fa-basket-shopping"></i>
+            <span>Pesanan</span>
+        </a>
+        <a href="history.html" class="bnav-item">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Riwayat</span>
+        </a>
+        <a href="profile.html" class="bnav-item active">
+            <i class="fa-solid fa-user"></i>
+            <span>Profil</span>
+        </a>
+    </nav>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-msg">Pesan</span>
+    </div>
+
+    <script>
+        // ======= SIMULASI MEMBER / GUEST =======
+        // Ubah variabel di bawah ini menjadi `true` untuk melihat UI Member
+        const isMember = false; 
+
+        const initUI = () => {
+            if (isMember) {
+                document.getElementById('ui-user-name').innerText = "Ahmad Fadil";
+                document.getElementById('ui-member-badge').className = "profile-badge";
+                document.getElementById('ui-member-badge').innerHTML = '<i class="fa-solid fa-star"></i> Gold Member';
+                document.getElementById('guest-banner').style.display = 'none';
+
+                document.getElementById('ui-points').innerText = "1.250";
+                document.getElementById('ui-trans').innerText = "12";
+                document.getElementById('ui-spent').innerText = "Rp 1.250K";
+                document.getElementById('ui-point-earned').innerText = "1.250";
+
+                document.querySelectorAll('.member-lock').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.member-content').forEach(el => el.classList.remove('locked-content'));
+
+                document.getElementById('btn-edit-profile').onclick = () => showToast('Menu Edit Profil ditekan');
+                document.getElementById('ui-edit-text').innerHTML = "Edit Profil";
+                document.getElementById('ui-edit-text').style.color = "var(--primary-navy)";
+
+                // Progress animation
+                setTimeout(() => { document.getElementById('ui-progress').style.width = '75%'; }, 500);
+            }
+        };
+
+        const toggleNotification = () => {
+            if ("Notification" in window) {
+                if (document.getElementById('notif-toggle').checked) {
+                    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === "granted") showToast("Notifikasi diaktifkan");
+                            else { showToast("Izin notifikasi ditolak", true); document.getElementById('notif-toggle').checked = false; }
+                        });
+                    } else if (Notification.permission === "granted") {
+                        showToast("Notifikasi diaktifkan");
+                    } else {
+                        showToast("Izinkan notifikasi di pengaturan browser Anda", true);
+                        document.getElementById('notif-toggle').checked = false;
+                    }
+                } else {
+                    showToast("Notifikasi dinonaktifkan");
+                }
+            } else {
+                showToast("Browser tidak mendukung notifikasi", true);
+                document.getElementById('notif-toggle').checked = false;
+            }
+        };
+
+        const showToast = (msg, isError = false) => {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.querySelector('i').className = isError ? 'fa-solid fa-circle-xmark' : 'fa-solid fa-circle-check';
+            toast.querySelector('i').style.color = isError ? 'var(--danger)' : 'var(--success)';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
+        window.onload = () => {
+            initUI();
+            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission();
+            }
+        };
+    </script>
+</body>
+</html>

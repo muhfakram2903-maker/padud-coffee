@@ -1,0 +1,1311 @@
+<?php
+session_start();
+
+// Simulasi Login System
+// Ganti nilai $is_member menjadi true untuk melihat simulasi tampilan Member
+$is_member = false; 
+$user_name = $is_member ? "Budi Santoso" : "Guest Customer";
+$user_points = $is_member ? 2450 : 0;
+?>
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Riwayat Transaksi | Padud Coffee</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Global Variables & Reset from menu.html */
+        :root {
+            --bg-cream: #FDFBF7;
+            --bg-secondary: #F4F1EA;
+            --primary-navy: #1A2B4C;
+            --primary-light: #2A4072;
+            --accent-gold: #D4AF37;
+            --text-dark: #1A2B4C;
+            --text-light: #7A869A;
+            --white: #FFFFFF;
+            --shadow-sm: 0 4px 12px rgba(26, 43, 76, 0.04);
+            --shadow-md: 0 10px 24px rgba(26, 43, 76, 0.08);
+            --border-radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-cream);
+            color: var(--text-dark);
+            padding-bottom: 90px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input {
+            font-family: inherit;
+            outline: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+            z-index: 100;
+            padding: 15px 20px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary-navy);
+        }
+
+        .action-icon {
+            position: relative;
+            font-size: 22px;
+            color: var(--primary-navy);
+            padding: 5px;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0 calc(15px + env(safe-area-inset-bottom));
+            z-index: 100;
+            border-top: 1px solid rgba(0, 0, 0, 0.02);
+        }
+
+        .bnav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: #9EABBf;
+            font-size: 11px;
+            width: 25%;
+            font-weight: 500;
+        }
+
+        .bnav-item.active {
+            color: var(--primary-navy);
+            font-weight: 700;
+        }
+
+        .bnav-item i {
+            font-size: 22px;
+            margin-bottom: 2px;
+            transition: var(--transition);
+        }
+
+        .bnav-item.active i {
+            transform: translateY(-3px);
+        }
+
+        .bnav-cart-wrapper {
+            position: relative;
+        }
+
+        .badge-count {
+            position: absolute;
+            top: -5px;
+            right: 15px;
+            background-color: #FF4757;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(255, 71, 87, 0.3);
+            display: none;
+        }
+
+        /* Locked State */
+        .locked-state {
+            text-align: center;
+            padding: 60px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+        }
+
+        .lock-icon {
+            font-size: 70px;
+            color: rgba(26, 43, 76, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .locked-state h3 {
+            color: var(--primary-navy);
+            margin-bottom: 15px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .locked-state p {
+            font-size: 15px;
+            color: var(--text-light);
+            margin-bottom: 35px;
+            line-height: 1.6;
+            max-width: 300px;
+        }
+
+        .btn-upgrade {
+            background: linear-gradient(135deg, var(--primary-navy) 0%, #2c3e50 100%);
+            color: white;
+            padding: 16px 30px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 16px;
+            width: 100%;
+            max-width: 250px;
+            box-shadow: 0 10px 25px rgba(26, 43, 76, 0.25);
+        }
+
+        .btn-upgrade:active {
+            transform: scale(0.96);
+        }
+
+        /* History Custom UI */
+        .history-page-container {
+            padding: 15px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-bar {
+            position: relative;
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .search-bar input {
+            width: 100%;
+            background-color: var(--bg-secondary);
+            border: 2px solid transparent;
+            padding: 14px 15px 14px 45px;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .search-bar input:focus {
+            border-color: rgba(26, 43, 76, 0.1);
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-bar input::placeholder {
+            color: #9EABBf;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9EABBf;
+            font-size: 15px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+            margin-bottom: 20px;
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-btn {
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--white);
+            color: var(--text-light);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            white-space: nowrap;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-btn.active {
+            background: var(--primary-navy);
+            color: white;
+            border-color: var(--primary-navy);
+            box-shadow: 0 4px 10px rgba(26, 43, 76, 0.2);
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .h-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .h-card:active {
+            transform: scale(0.98);
+        }
+
+        .h-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+            padding-bottom: 12px;
+        }
+
+        .h-id {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .h-date {
+            font-size: 11px;
+            color: #9EABBf;
+            margin-top: 2px;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.diproses {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+
+        .badge.disiapkan {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .badge.selesai {
+            background: rgba(37, 211, 102, 0.1);
+            color: #25D366;
+        }
+
+        .badge.dibatalkan {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .h-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .h-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: var(--bg-secondary);
+        }
+
+        .h-info h4 {
+            font-size: 15px;
+            color: var(--primary-navy);
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .h-info p {
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .h-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .h-total-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .h-total-val {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--primary-navy);
+        }
+
+        .btn-detail {
+            background: var(--bg-cream);
+            color: var(--primary-navy);
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* User Info & Notif Dropdown from menu.html */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: var(--bg-secondary);
+            color: var(--primary-navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .user-details h4 {
+            font-size: 15px;
+            margin-bottom: 2px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .user-badge {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-guest {
+            background-color: #F0F2F5;
+            color: var(--text-light);
+        }
+
+        .badge-member {
+            background-color: rgba(212, 175, 55, 0.15);
+            color: var(--accent-gold);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .notif-dropdown {
+            position: absolute;
+            top: 120%;
+            right: -10px;
+            background: white;
+            width: 300px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            display: none;
+            flex-direction: column;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            text-align: left;
+        }
+
+        .notif-dropdown.active {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .notif-dropdown::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            background: white;
+            transform: rotate(45deg);
+            border-left: 1px solid rgba(0, 0, 0, 0.05);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .notif-item {
+            padding: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            display: flex;
+            gap: 14px;
+            transition: var(--transition);
+        }
+
+        .notif-item:hover {
+            background: var(--bg-cream);
+        }
+
+        .notif-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(26, 43, 76, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-navy);
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        .notif-text h5 {
+            font-size: 14px;
+            margin-bottom: 4px;
+            font-weight: 700;
+            color: var(--primary-navy);
+        }
+
+        .notif-text p {
+            font-size: 12px;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        /* Modal */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 43, 76, 0.5);
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            z-index: 1001;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .modal-drag {
+            width: 40px;
+            height: 4px;
+            background: #E0E4EB;
+            border-radius: 2px;
+            margin: 15px auto;
+        }
+
+        .modal-header {
+            padding: 0 25px 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px 25px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .modal-footer {
+            padding: 20px 25px calc(20px + env(safe-area-inset-bottom));
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            background: white;
+        }
+
+        .timeline {
+            margin: 20px 0;
+            position: relative;
+            padding-left: 20px;
+            border-left: 2px solid #eee;
+        }
+
+        .tl-item {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .tl-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .tl-dot {
+            position: absolute;
+            left: -26px;
+            top: 2px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #eee;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1px #eee;
+        }
+
+        .tl-item.active .tl-dot {
+            background: var(--primary-navy);
+            box-shadow: 0 0 0 2px rgba(26, 43, 76, 0.2);
+        }
+
+        .tl-time {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 2px;
+        }
+
+        .tl-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .receipt-item.total {
+            border-top: 1px dashed #eee;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-weight: 800;
+            font-size: 16px;
+            color: var(--primary-navy);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            border-radius: 20px;
+            background: var(--primary-navy);
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        /* === Responsive & Desktop Layout === */
+        @media (min-width: 600px) {
+            .history-list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            /* Desktop Modal Styling */
+            .modal {
+                top: 50%;
+                bottom: auto;
+                transform: translate(-50%, -50%) scale(0.9);
+                border-radius: 24px;
+                opacity: 0;
+                pointer-events: none;
+                max-width: 450px;
+                max-height: 85vh;
+            }
+
+            .modal.active {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            .modal-drag {
+                display: none;
+            }
+
+            .modal-header {
+                padding-top: 25px;
+            }
+        }
+
+        @media (min-width: 900px) {
+            .history-list {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+
+            .header-top,
+            .search-bar,
+            .filter-tabs,
+            .history-page-container {
+                max-width: 1000px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .header {
+                padding-left: max(20px, calc(50% - 500px));
+                padding-right: max(20px, calc(50% - 500px));
+            }
+
+            .bottom-nav {
+                max-width: 1000px;
+                left: 50%;
+                transform: translateX(-50%);
+                border-radius: 20px 20px 0 0;
+            }
+
+            .h-card:hover {
+                transform: translateY(-3px);
+                box-shadow: var(--shadow-md);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .history-list {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 25px;
+            }
+
+            .header-top,
+            .search-bar,
+            .filter-tabs,
+            .history-page-container,
+            .bottom-nav {
+                max-width: 1200px;
+            }
+
+            .header {
+                padding-left: max(20px, calc(50% - 600px));
+                padding-right: max(20px, calc(50% - 600px));
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Application Content Wrapper (Opaque layer to hide the receipt from user) -->
+    <div style="position: relative; z-index: 10; background: var(--bg-cream); min-height: 100vh;">
+
+        <!-- Header from menu.html -->
+        <header class="header">
+            <div class="header-top">
+                <div class="user-info">
+                    <img src="../assets/logo/logo.png" alt="Padud"
+                        style="height: 32px; width: auto; object-fit: contain; margin-right: 4px;"
+                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMUEyQjRDIj48cGF0aCBkPSJNMiwxOXYyaDIwdi0ySDJ6TTE5LjYsMTcuNGMwLjUtMC44LDAuOS0xLjcsMS4xLTIuN2MwLjEtMC4zLDAuMS0wLjcsMC4xLTFoMmMwLDEuNS0wLjQsMi45LTEuMSw0LjFMMTkuNiwxNy40ek01LjUsMTcuNEw0LjQsMTguOGMtMC43LTEuMi0xLjEtMi42LTEuMS00LjFoMmMwLDAuNCwwLDAuOCwwLjEsMS4xQzUuNiwxNS43LDUuNSwxNi42LDUuNSwxNy40ek0xMiwyMGMtNC40LDAtOC0zLjYtOC04VjRoMTZ2OEMyMCwxNi40LDE2LjQsMjAsMTIsMjB6TTEyLDZjLTMuMywwLTYsMi43LTYsNnMyLjcsNiw2LDZzNi0yLjcsNi02UzE1LjMsNiwxMiw2eiIvPjwvc3ZnPg=='">
+                    <div class="user-details" style="display: flex; flex-direction: column; justify-content: center;">
+                        <span
+                            style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Nomor
+                            Meja</span>
+                        <h4
+                            style="font-size: 14px; margin: 0; color: var(--primary-navy); font-weight: 800; line-height: 1;">
+                            A-12</h4>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <?php if(!$is_member): ?>
+                    <button
+                        style="font-size: 11px; font-weight: 700; color: var(--primary-navy); background: transparent; padding: 6px 10px; border-radius: 12px; border: 1px solid rgba(26,43,76,0.1);"
+                        onclick="alert('Buka form login')">Masuk</button>
+                    <button
+                        style="font-size: 11px; font-weight: 700; color: white; background: var(--primary-navy); padding: 6px 12px; border-radius: 12px; box-shadow: 0 4px 10px rgba(26,43,76,0.2);"
+                        onclick="alert('Buka form registrasi')">Daftar</button>
+                    <?php else: ?>
+                    <div style="font-size: 13px; font-weight: 800; color: var(--primary-navy); margin-right: 8px;">
+                        <?php echo $user_name; ?>
+                    </div>
+                    <?php endif; ?>
+                    <button class="action-icon" onclick="toggleNotif(event)">
+                        <i class="fa-regular fa-bell"></i>
+                        <div class="badge-count">1</div>
+
+                        <!-- Notification Dropdown -->
+                        <div class="notif-dropdown" id="notif-dropdown" onclick="event.stopPropagation()">
+                            <div
+                                style="padding: 15px; font-weight: 700; font-size: 14px; border-bottom: 1px solid #eee;">
+                                Notifikasi</div>
+                            <div class="notif-item">
+                                <div class="notif-icon"><i class="fa-solid fa-tags"></i></div>
+                                <div class="notif-text">
+                                    <h5>Promo Pengguna Baru</h5>
+                                    <p>Dapatkan diskon 20% dengan daftar member Padud Coffee hari ini!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchHistory" placeholder="Cari ID transaksi atau nama menu..."
+                    onkeyup="filterHistory()">
+            </div>
+        </header>
+
+        <main class="history-page-container">
+            <h2 style="font-size: 20px; font-weight: 800; color: var(--primary-navy); margin-bottom: 15px;">Riwayat
+                Transaksi</h2>
+
+            <div class="filter-tabs">
+                <button class="filter-btn active" onclick="setFilter('Semua', this)">Semua</button>
+                <button class="filter-btn" onclick="setFilter('Diproses', this)">Diproses</button>
+                <button class="filter-btn" onclick="setFilter('Disiapkan', this)">Disiapkan</button>
+                <button class="filter-btn" onclick="setFilter('Selesai', this)">Selesai</button>
+            </div>
+
+            <div class="history-list" id="historyList">
+                <!-- JS Rendered -->
+            </div>
+        </main>
+
+        <!-- Modal Detail Transaksi -->
+        <div class="overlay" id="overlay" onclick="closeModal()"></div>
+        <div class="modal" id="detailModal">
+            <div class="modal-drag"></div>
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 800; color: var(--primary-navy);" id="modalOrderId">
+                        #ORD-0000</h3>
+                    <p style="font-size: 12px; color: var(--text-light);" id="modalDate">01 Jan 2026, 00:00</p>
+                </div>
+                <div id="modalBadge"></div>
+            </div>
+            <div class="modal-body">
+                <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--text-dark);">Status Pesanan</h4>
+                <div class="timeline" id="modalTimeline">
+                    <!-- Timeline JS -->
+                </div>
+
+                <h4 style="font-size: 14px; margin-bottom: 15px; margin-top: 25px; color: var(--text-dark);">Detail
+                    Pesanan</h4>
+                <div style="background: var(--bg-cream); border-radius: 16px; padding: 15px; border: 1px solid #eee;"
+                    id="modalReceipt">
+                    <!-- Items JS -->
+                </div>
+
+                <div
+                    style="margin-top: 20px; font-size: 13px; color: var(--text-light); background: #f8f9fa; padding: 15px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.03);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>ID
+                            Transaksi</span><strong style="color: var(--text-dark);" id="modalTxId">ORD-0000</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Waktu
+                            Transaksi</span><strong style="color: var(--text-dark);" id="modalTxTime">14:30</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Kasir</span><strong style="color: var(--text-dark);" id="modalCashier">System</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Metode
+                            Pembayaran</span><strong style="color: var(--text-dark);" id="modalPayment">QRIS</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;"><span>Nama Pemesan</span><strong
+                            style="color: var(--text-dark);">
+                            <?php echo $user_name; ?>
+                        </strong></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="downloadReceiptPDF()"><i class="fa-solid fa-download"
+                        style="margin-right: 8px;"></i> Download Struk</button>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Dashboard -->
+        <nav class="bottom-nav">
+            <a href="menu.html" class="bnav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Beranda</span>
+            </a>
+            <a href="history.html" class="bnav-item active">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Riwayat</span>
+            </a>
+            <a href="cart.html" class="bnav-item bnav-cart-wrapper">
+                <i class="fa-solid fa-basket-shopping"></i>
+                <span>Keranjang</span>
+                <div class="badge-count" id="nav-cart-badge" style="display:none; right: 15px; top: -5px;">0</div>
+            </a>
+            <a href="profile.html" class="bnav-item">
+                <i class="fa-solid fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </nav>
+
+    </div> <!-- End of Application Content Wrapper -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        const formatRupiah = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+
+        // Dummy Data History
+        const dummyHistory = [
+            {
+                id: "ORD-8821",
+                date: "Sabtu, 06 Jun 2026, 14:30",
+                status: "Diproses",
+                payment: "QRIS",
+                voucherDiscount: 10000,
+                items: [
+                    { name: "Padud Aren Latte", qty: 2, price: 25000, notes: "Es dipisah" },
+                    { name: "Butter Croissant", qty: 1, price: 22000, notes: "" }
+                ]
+            },
+            {
+                id: "ORD-8815",
+                date: "Jumat, 05 Jun 2026, 10:15",
+                status: "Selesai",
+                payment: "E-Wallet",
+                items: [
+                    { name: "Premium Matcha", qty: 1, price: 28000, notes: "" }
+                ]
+            },
+            {
+                id: "ORD-8802",
+                date: "Kamis, 04 Jun 2026, 19:45",
+                status: "Selesai",
+                payment: "Kasir",
+                items: [
+                    { name: "Classic Americano", qty: 2, price: 20000, notes: "No sugar" },
+                    { name: "Truffle Fries", qty: 1, price: 25000, notes: "" }
+                ]
+            },
+            {
+                id: "ORD-8799",
+                date: "Rabu, 03 Jun 2026, 08:20",
+                status: "Diproses",
+                payment: "QRIS",
+                items: [
+                    { name: "Choco Lava Cake", qty: 1, price: 30000, notes: "" }
+                ]
+            }
+        ];
+
+        let currentFilter = 'Semua';
+
+        const getBadgeHTML = (status) => {
+            const classMap = { "Diproses": "diproses", "Disiapkan": "disiapkan", "Selesai": "selesai" };
+            return `<span class="badge ${classMap[status]}">${status}</span>`;
+        };
+
+        const calculateTotal = (items) => items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+        const renderHistory = () => {
+            const listContainer = document.getElementById('historyList');
+            if (!listContainer) return;
+
+            const query = document.getElementById('searchHistory').value.toLowerCase();
+
+            const filtered = dummyHistory.filter(h => {
+                const matchStatus = currentFilter === 'Semua' || h.status === currentFilter;
+                const matchSearch = h.id.toLowerCase().includes(query) || h.items.some(i => i.name.toLowerCase().includes(query));
+                return matchStatus && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center; padding: 40px 0; color: var(--text-light); font-size: 14px;">Tidak ada riwayat transaksi ditemukan.</div>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(h => {
+                const totalAmount = calculateTotal(h.items);
+                const isMember = "<?php echo $is_member ? 'true' : 'false'; ?>" === "true";
+                const discount = isMember ? totalAmount * 0.10 : 0;
+                const voucherDiscount = h.voucherDiscount || 0;
+                const tax = 2500;
+                const grandTotal = totalAmount - discount - voucherDiscount + tax;
+
+                html += `
+                    <div class="h-card fade-in" onclick='openModal(${JSON.stringify(h)})'>
+                        <div class="h-top">
+                            <div>
+                                <div class="h-id">#${h.id}</div>
+                                <div class="h-date">${h.date}</div>
+                            </div>
+                            ${getBadgeHTML(h.status)}
+                        </div>
+                        <div class="h-content">
+                            <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=100&q=80" class="h-img">
+                            <div class="h-info">
+                                <h4>${h.items[0].name} ${h.items.length > 1 ? `+${h.items.length - 1} item` : ''}</h4>
+                                <p>${h.items[0].qty}x - ${formatRupiah(h.items[0].price)}</p>
+                            </div>
+                        </div>
+                        <div class="h-bottom">
+                            <div>
+                                <div class="h-total-label">Total Belanja</div>
+                                <div class="h-total-val">${formatRupiah(grandTotal)}</div>
+                            </div>
+                            <button class="btn-detail">Lihat Detail</button>
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        };
+
+        window.setFilter = (status, btn) => {
+            currentFilter = status;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderHistory();
+        };
+
+        window.filterHistory = () => {
+            renderHistory();
+        };
+
+        // Modal Logic
+        const overlay = document.getElementById('overlay');
+        const modal = document.getElementById('detailModal');
+
+        const closeModal = () => {
+            modal.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        };
+
+        window.openModal = (data) => {
+            document.getElementById('modalOrderId').innerText = '#' + data.id;
+            document.getElementById('modalDate').innerText = data.date;
+            document.getElementById('modalBadge').innerHTML = getBadgeHTML(data.status);
+
+            // Populate new fields
+            document.getElementById('modalTxId').innerText = data.id;
+
+            // Extract time and day from "Sabtu, 06 Jun 2026, 14:30"
+            const timePart = data.date.includes(',') ? data.date.split(',').pop().trim() : data.date;
+            document.getElementById('modalTxTime').innerText = timePart;
+
+            document.getElementById('modalCashier').innerText = "Rina (Kasir 1)";
+            document.getElementById('modalPayment').innerText = data.payment;
+
+            // Render Timeline
+            let timelineHTML = '';
+            const steps = ["Pesanan Diterima", "Sedang Disiapkan", "Pesanan Selesai"];
+            let activeIdx = 0;
+            if (data.status === "Diproses") activeIdx = 0;
+            if (data.status === "Disiapkan") activeIdx = 1;
+            if (data.status === "Selesai") activeIdx = 2;
+
+            steps.forEach((s, idx) => {
+                timelineHTML += `
+                    <div class="tl-item ${idx <= activeIdx ? 'active' : ''}">
+                        <div class="tl-dot"></div>
+                        <div class="tl-time">${idx <= activeIdx ? timePart : '--:--'}</div>
+                        <div class="tl-text">${s}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('modalTimeline').innerHTML = timelineHTML;
+
+            // Render Items and calculate receipt values
+            let receiptHTML = '';
+            let printItemsHTML = '';
+            let subtotal = 0;
+            data.items.forEach(item => {
+                const itemTotal = item.price * item.qty;
+                subtotal += itemTotal;
+
+                receiptHTML += `
+                    <div class="receipt-item">
+                        <span style="flex-grow:1;">${item.qty}x ${item.name} <br/><small style="color:var(--text-light);">${item.notes}</small></span>
+                        <span>${formatRupiah(itemTotal)}</span>
+                    </div>
+                `;
+
+                // Print items HTML
+                printItemsHTML += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="flex: 2; padding-right: 5px;">${item.name} ${item.notes ? '<br/><span style="font-size: 9px; color: #555;">* ' + item.notes + '</span>' : ''}</span>
+                        <span style="flex: 1; text-align: center;">${item.qty}x</span>
+                        <span style="flex: 1.5; text-align: right;">${formatRupiah(itemTotal)}</span>
+                    </div>
+                `;
+            });
+
+            const isMember = "<?php echo $is_member ? 'true' : 'false'; ?>" === "true";
+            const discount = isMember ? subtotal * 0.10 : 0;
+            const voucherDiscount = data.voucherDiscount || 0;
+            const taxable = subtotal - discount - voucherDiscount;
+            const tax = 2500;
+            const grandTotal = taxable + tax;
+
+            if (discount > 0) {
+                receiptHTML += `
+                    <div class="receipt-item" style="color: #27ae60; margin-top: 10px;">
+                        <span>Diskon Member (10%)</span>
+                        <span>-${formatRupiah(discount)}</span>
+                    </div>
+                `;
+            }
+            if (voucherDiscount > 0) {
+                receiptHTML += `
+                    <div class="receipt-item" style="color: #27ae60; margin-top: 5px;">
+                        <span>Voucher Diskon</span>
+                        <span>-${formatRupiah(voucherDiscount)}</span>
+                    </div>
+                `;
+            }
+            receiptHTML += `
+                <div class="receipt-item" style="color: var(--text-light);">
+                    <span>Biaya penanganan</span>
+                    <span>+${formatRupiah(tax)}</span>
+                </div>
+                <div class="receipt-item total">
+                    <span>Total Pembayaran</span>
+                    <span>${formatRupiah(grandTotal)}</span>
+                </div>
+            `;
+            document.getElementById('modalReceipt').innerHTML = receiptHTML;
+
+            const btnDownload = document.querySelector('.modal-footer .btn-primary');
+            if (data.status === "Selesai") {
+                btnDownload.disabled = false;
+                btnDownload.style.opacity = "1";
+                btnDownload.style.cursor = "pointer";
+                btnDownload.innerHTML = '<i class="fa-solid fa-download" style="margin-right: 8px;"></i> Download Struk';
+            } else {
+                btnDownload.disabled = true;
+                btnDownload.style.opacity = "0.6";
+                btnDownload.style.cursor = "not-allowed";
+                btnDownload.innerHTML = '<i class="fa-solid fa-lock" style="margin-right: 8px;"></i> Struk Tersedia Setelah Selesai';
+            }
+
+            overlay.classList.add('active');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.downloadReceiptPDF = () => {
+            const id = document.getElementById('modalOrderId').innerText.replace('#', '');
+            const data = dummyHistory.find(h => h.id === id);
+            if (!data) return;
+
+            let subtotal = 0;
+            let itemsHtml = '';
+            data.items.forEach(item => {
+                const itemTotal = item.price * item.qty;
+                subtotal += itemTotal;
+                itemsHtml += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="flex: 2; padding-right: 5px;">${item.name} ${item.notes ? '<br/><span style="font-size: 9px; color: #555;">* ' + item.notes + '</span>' : ''}</span>
+                        <span style="flex: 1; text-align: center;">${item.qty}x</span>
+                        <span style="flex: 1.5; text-align: right;">${formatRupiah(itemTotal)}</span>
+                    </div>
+                `;
+            });
+
+            const isMember = "<?php echo $is_member ? 'true' : 'false'; ?>" === "true";
+            const discount = isMember ? subtotal * 0.10 : 0;
+            const voucherDiscount = data.voucherDiscount || 0;
+            const taxable = subtotal - discount - voucherDiscount;
+            const tax = 2500;
+            const grandTotal = taxable + tax;
+
+            const dateOnly = data.date.includes(',') ? data.date.split(',').slice(0, -1).join(',').trim() : data.date;
+            const timePart = data.date.includes(',') ? data.date.split(',').pop().trim() : data.date;
+
+            // Generate a clean HTML string wrapper
+            const receiptHtml = `
+            <div style="padding: 15px; background: white; color: black; font-family: 'Courier New', Courier, monospace; font-size: 11px;">
+                <div style="text-align: center; margin-bottom: 12px;">
+                    <h2 style="margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 1px;">PADUD COFFEE</h2>
+                    <p style="margin: 4px 0 0;">Jl. Raya Utama No. 123, Kota</p>
+                    <p style="margin: 2px 0 0;">Telp: 0812-3456-7890</p>
+                </div>
+                <div style="border-top: 1px dashed black; border-bottom: 1px dashed black; padding: 8px 0; margin-bottom: 12px; line-height: 1.4;">
+                    <div style="display: flex; justify-content: space-between;"><span>${dateOnly} ${timePart}</span><span>${data.id}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Kasir: Rina</span><span>Pelanggan: <?php echo $user_name; ?></span></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px dashed black; padding-bottom: 4px; margin-bottom: 8px;">
+                    <span style="flex: 2;">Item</span><span style="flex: 1; text-align: center;">Qty</span><span style="flex: 1.5; text-align: right;">Total</span>
+                </div>
+                <div style="margin-bottom: 12px; line-height: 1.4;">
+                    ${itemsHtml}
+                </div>
+                <div style="border-top: 1px dashed black; padding-top: 8px; line-height: 1.4;">
+                    <div style="display: flex; justify-content: space-between;"><span>Subtotal</span><span>${formatRupiah(subtotal)}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Diskon Member</span><span>-${formatRupiah(discount)}</span></div>
+                    ${voucherDiscount > 0 ? `<div style="display: flex; justify-content: space-between;"><span>Voucher Diskon</span><span>-${formatRupiah(voucherDiscount)}</span></div>` : ''}
+                    <div style="display: flex; justify-content: space-between;"><span>Biaya penanganan</span><span>${formatRupiah(tax)}</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed black;">
+                        <span>TOTAL</span><span>${formatRupiah(grandTotal)}</span>
+                    </div>
+                </div>
+                <div style="border-top: 1px dashed black; margin-top: 12px; padding-top: 8px; line-height: 1.4;">
+                    <div style="display: flex; justify-content: space-between;"><span>Tipe Pembayaran:</span><span style="font-weight: bold;">${data.payment}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Status:</span><span>LUNAS</span></div>
+                </div>
+                <div style="text-align: center; margin-top: 20px; font-size: 10px;">
+                    <p style="margin: 0;">Terima kasih atas kunjungan Anda!</p>
+                    <p style="margin: 2px 0 0;">Kritik & Saran: 0812-3456-7890</p>
+                    <p style="margin: 2px 0 0;">IG: @padud.coffee</p>
+                    <p style="margin: 8px 0 0;">*** Wi-Fi: Padud_Hotspot | Pass: padud2026 ***</p>
+                </div>
+            </div>`;
+
+            const btn = document.querySelector('.modal-footer .btn-primary');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Memproses PDF...';
+
+            const opt = {
+                margin: 5,
+                filename: 'Struk_Padud_Coffee_' + data.id + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: [80, 250], orientation: 'portrait' }
+            };
+
+            // Pass the raw HTML string directly to html2pdf
+            html2pdf().set(opt).from(receiptHtml).save().then(() => {
+                btn.innerHTML = originalText;
+            }).catch(err => {
+                console.error("PDF generation error: ", err);
+                btn.innerHTML = originalText;
+                alert("Gagal membuat PDF. Silakan coba lagi.");
+            });
+        };
+
+        // Cart Badge Logic
+        const updateCartUI = () => {
+            const badge = document.getElementById('nav-cart-badge');
+            let cart = JSON.parse(localStorage.getItem('padud_cart')) || [];
+            let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+
+            if (badge) {
+                if (totalQty > 0) {
+                    badge.style.display = 'flex';
+                    badge.innerText = totalQty;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        };
+
+        window.toggleNotif = (e) => {
+            e.stopPropagation();
+            const notif = document.getElementById('notif-dropdown');
+            if (notif) notif.classList.toggle('active');
+        };
+
+        document.addEventListener('click', () => {
+            const notif = document.getElementById('notif-dropdown');
+            if (notif) notif.classList.remove('active');
+        });
+
+        window.onload = () => {
+            updateCartUI();
+            renderHistory();
+        };
+    </script>
+</body>
+
+</html>

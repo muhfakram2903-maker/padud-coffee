@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daftar Member | Padud Coffee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --cream: #F5E6CA;
+            --cream-light: #FDFBF7;
+            --navy: #1F2A44;
+            --navy-light: #2A3B5E;
+            --gold: #D4AF37;
+            --white: #FFFFFF;
+            --text-main: #1F2A44;
+            --text-muted: #7A869A;
+            --danger: #E53935;
+            --success: #43A047;
+            --warning: #FB8C00;
+            --border: #E2E8F0;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow-soft: 0 10px 30px rgba(31, 42, 68, 0.08);
+            --shadow-hover: 0 15px 40px rgba(31, 42, 68, 0.12);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--cream-light);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--navy);
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        a:hover {
+            color: var(--gold);
+        }
+
+        button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Outfit', sans-serif;
+            transition: var(--transition);
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- LOADING SCREEN --- */
+        #loader-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--navy);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: var(--white);
+            transition: opacity 0.5s ease;
+        }
+
+        .loader-logo {
+            font-size: 60px;
+            color: var(--cream);
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .loader-brand {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .loader-tagline {
+            font-size: 14px;
+            color: rgba(245, 230, 202, 0.8);
+            font-weight: 300;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        .progress-wrapper {
+            width: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 6px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            background: var(--cream);
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+
+        .progress-text {
+            font-size: 16px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* --- MAIN LAYOUT --- */
+        #main-content {
+            display: none;
+            opacity: 0;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 992px) {
+            .layout-grid {
+                grid-template-columns: 1fr 1.5fr;
+                gap: 40px;
+                align-items: start;
+            }
+
+            body {
+                padding: 40px 0;
+            }
+
+            #main-content {
+                padding: 0 40px;
+            }
+        }
+
+        /* --- GLASSMORPHISM CARDS --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* --- SIDEBAR (Benefits & Security) --- */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: slideUp 0.6s ease forwards;
+        }
+
+        .side-card {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+            color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .side-card::after {
+            content: '\f0f4';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            font-size: 120px;
+            opacity: 0.05;
+            transform: rotate(-15deg);
+        }
+
+        .side-card.security {
+            background: var(--white);
+            color: var(--navy);
+            border: 1px solid var(--border);
+        }
+
+        .side-card.security::after {
+            content: '\f132';
+            color: var(--navy);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .side-card.security .card-title {
+            color: var(--navy);
+        }
+
+        .benefit-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .benefit-item i {
+            color: var(--gold);
+            font-size: 18px;
+            margin-top: 2px;
+        }
+
+        .side-card.security .benefit-item i {
+            color: var(--success);
+        }
+
+        .side-card.security .benefit-item {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* --- REGISTRATION FORM --- */
+        .form-container {
+            animation: slideUp 0.6s ease 0.2s forwards;
+            opacity: 0;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+
+        .form-subtitle {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid.two-cols {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-left: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i.icon-left {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px 14px 45px;
+            font-size: 15px;
+            color: var(--text-main);
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.1);
+        }
+
+        .form-control:focus+i.icon-left {
+            color: var(--navy);
+        }
+
+        /* Validation States */
+        .form-control.is-valid {
+            border-color: var(--success);
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--danger);
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .is-valid~.validation-icon.success {
+            opacity: 1;
+            color: var(--success);
+        }
+
+        .is-invalid~.validation-icon.error {
+            opacity: 1;
+            color: var(--danger);
+        }
+
+        .validation-msg {
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 4px;
+            display: none;
+            margin-top: 4px;
+        }
+
+        .is-valid~.validation-msg.success {
+            display: block;
+            color: var(--success);
+        }
+
+        .is-invalid~.validation-msg.error {
+            display: block;
+            color: var(--danger);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 2;
+            padding: 5px;
+        }
+
+        /* Radio Buttons */
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .radio-label input[type="radio"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            outline: none;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .radio-label input[type="radio"]:checked {
+            border-color: var(--navy);
+        }
+
+        .radio-label input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 8px;
+            height: 8px;
+            background: var(--navy);
+            border-radius: 50%;
+        }
+
+        .radio-label input[type="radio"]:checked~span {
+            color: var(--navy);
+            font-weight: 700;
+        }
+
+        /* Password Strength Meter */
+        .strength-meter {
+            margin-top: 10px;
+        }
+
+        .strength-bars {
+            display: flex;
+            gap: 5px;
+            height: 6px;
+            margin-bottom: 6px;
+        }
+
+        .strength-bar {
+            flex: 1;
+            background: var(--border);
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .strength-text {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        /* Strength States */
+        .strength-1 .strength-bar:nth-child(1) {
+            background: var(--danger);
+        }
+
+        .strength-2 .strength-bar:nth-child(1),
+        .strength-2 .strength-bar:nth-child(2) {
+            background: var(--warning);
+        }
+
+        .strength-3 .strength-bar:nth-child(1),
+        .strength-3 .strength-bar:nth-child(2),
+        .strength-3 .strength-bar:nth-child(3) {
+            background: #8BC34A;
+        }
+
+        .strength-4 .strength-bar {
+            background: var(--success);
+        }
+
+        /* CAPTCHA */
+        .captcha-box {
+            background: #F9FAFB;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .captcha-box:hover {
+            background: #F1F5F9;
+        }
+
+        .captcha-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .captcha-checkbox {
+            width: 28px;
+            height: 28px;
+            border: 2px solid var(--border);
+            background: var(--white);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: transparent;
+            transition: var(--transition);
+        }
+
+        .captcha-box.verified .captcha-checkbox {
+            border-color: var(--success);
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .captcha-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .captcha-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .captcha-logo i {
+            font-size: 24px;
+            color: #4285F4;
+        }
+
+        .captcha-logo span {
+            font-size: 9px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Checkboxes */
+        .agreement-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .checkbox-label input[type="checkbox"]:checked {
+            border-color: var(--navy);
+            background: var(--navy);
+        }
+
+        .checkbox-label input[type="checkbox"]:checked::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .checkbox-label input[type="checkbox"].is-invalid {
+            border-color: var(--danger);
+            background: rgba(229, 57, 53, 0.1);
+        }
+
+        /* Main Button */
+        .btn-main {
+            width: 100%;
+            background: var(--navy);
+            color: var(--white);
+            padding: 18px;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 8px 20px rgba(31, 42, 68, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(31, 42, 68, 0.3);
+            background: var(--navy-light);
+        }
+
+        .btn-main:active {
+            transform: translateY(0);
+        }
+
+        .btn-main.loading {
+            pointer-events: none;
+            color: transparent;
+        }
+
+        .btn-main.loading::after {
+            content: '\f110';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            color: var(--white);
+            font-size: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Social Login */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 30px 0;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .divider::before {
+            margin-right: 15px;
+        }
+
+        .divider::after {
+            margin-left: 15px;
+        }
+
+        .social-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-social {
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-social:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+            transform: translateY(-2px);
+        }
+
+        .btn-social.google {
+            color: #DB4437;
+        }
+
+        .btn-social.facebook {
+            color: #4267B2;
+        }
+
+        /* Login Link */
+        .login-link {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .login-link a {
+            color: var(--navy);
+            text-decoration: underline;
+            margin-left: 5px;
+        }
+
+        /* --- OTP MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(31, 42, 68, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            transform: translateY(50px) scale(0.9);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .modal-icon {
+            font-size: 50px;
+            color: var(--navy);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 10px;
+        }
+
+        .modal-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .otp-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .otp-inputs input {
+            width: 45px;
+            height: 55px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            color: var(--navy);
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .otp-inputs input:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 4px rgba(31, 42, 68, 0.1);
+        }
+
+        .countdown {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 20px;
+        }
+
+        .resend-link {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        .resend-link.active {
+            color: var(--navy);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* --- TOAST --- */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--white);
+            border-left: 4px solid var(--navy);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            min-width: 280px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.success i {
+            color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+        }
+
+        .toast.error i {
+            color: var(--danger);
+        }
+
+        .toast.warning {
+            border-color: var(--warning);
+        }
+
+        .toast.warning i {
+            color: var(--warning);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast-body {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .toast-msg {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOADING SCREEN -->
+    <div id="loader-screen">
+        <i class="fa-solid fa-mug-hot loader-logo"></i>
+        <div class="loader-brand">PADUD COFFEE</div>
+        <div class="loader-tagline">"Brewed Fresh, Ordered Smart"</div>
+        <div class="progress-wrapper">
+            <div class="progress-bar" id="loader-bar"></div>
+        </div>
+        <div class="progress-text"><span id="loader-text">0</span>%</div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main-content">
+        <div class="layout-grid">
+
+            <!-- LEFT SIDEBAR: Benefits & Security -->
+            <div class="sidebar">
+                <div class="side-card">
+                    <div class="card-title"><i class="fa-solid fa-crown text-gold" style="color:var(--gold);"></i>
+                        Keuntungan Menjadi Member</div>
+                    <div class="benefit-list">
+                        <div class="benefit-item"><i class="fa-solid fa-circle-check"></i> <span>Kumpulkan poin setiap
+                                transaksi pembelian</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-circle-check"></i> <span>Tukarkan poin dengan
+                                voucher minuman gratis</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-circle-check"></i> <span>Akses promo eksklusif
+                                khusus member Padud</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-circle-check"></i> <span>Cashback spesial untuk
+                                level Gold & Platinum</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-circle-check"></i> <span>Simpan riwayat
+                                transaksi secara permanen</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-circle-check"></i> <span>Voucher kejutan spesial
+                                di hari ulang tahun Anda</span></div>
+                    </div>
+                </div>
+
+                <div class="side-card security">
+                    <div class="card-title"><i class="fa-solid fa-shield-halved"></i> Keamanan Akun Anda</div>
+                    <div class="benefit-list">
+                        <div class="benefit-item"><i class="fa-solid fa-lock"></i> <span>Password terenkripsi dengan
+                                standar industri (Bcrypt)</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-mobile-screen"></i> <span>Verifikasi OTP untuk
+                                keamanan ekstra</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-layer-group"></i> <span>Perlindungan akun
+                                berlapis (Multi-Layer Security)</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-credit-card"></i> <span>Keamanan transaksi
+                                digital terjamin</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-envelope-circle-check"></i> <span>Verifikasi
+                                email cerdas (Anti-Spam)</span></div>
+                        <div class="benefit-item"><i class="fa-solid fa-user-shield"></i> <span>Session protection &
+                                Auto-logout</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT FORM: Registration -->
+            <div class="form-container">
+                <div class="glass-card">
+                    <div class="form-header">
+                        <h1 class="form-title">Buat Akun Member</h1>
+                        <p class="form-subtitle">Lengkapi data diri Anda untuk bergabung</p>
+                    </div>
+
+                    <form id="register-form" onsubmit="event.preventDefault(); handleRegister();">
+                        <div class="form-grid two-cols">
+                            <!-- Full Name -->
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label class="input-label">Nama Lengkap</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-user icon-left"></i>
+                                    <input type="text" id="fullname" class="form-control" placeholder="Cth: Ahmad Fadil"
+                                        autocomplete="name">
+                                    <i class="fa-solid fa-circle-check validation-icon success"></i>
+                                    <i class="fa-solid fa-circle-exclamation validation-icon error"></i>
+                                </div>
+                                <span class="validation-msg error" id="fullname-err">Nama wajib diisi (Min. 3
+                                    karakter)</span>
+                            </div>
+
+                            <!-- Username -->
+                            <div class="input-group">
+                                <label class="input-label">Username</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-at icon-left"></i>
+                                    <input type="text" id="username" class="form-control"
+                                        placeholder="Cth: ahmadfadil99">
+                                    <i class="fa-solid fa-circle-check validation-icon success"></i>
+                                    <i class="fa-solid fa-circle-exclamation validation-icon error"></i>
+                                </div>
+                                <span class="validation-msg error" id="username-err">Username tidak valid / sudah
+                                    dipakai</span>
+                                <span class="validation-msg success" id="username-succ">Username tersedia</span>
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="input-group">
+                                <label class="input-label">Nomor HP</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-phone icon-left"></i>
+                                    <input type="tel" id="phone" class="form-control" placeholder="Cth: 081234567890">
+                                    <i class="fa-solid fa-circle-check validation-icon success"></i>
+                                    <i class="fa-solid fa-circle-exclamation validation-icon error"></i>
+                                </div>
+                                <span class="validation-msg error" id="phone-err">Format nomor tidak valid (10-15 digit
+                                    angka)</span>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label class="input-label">Email</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-envelope icon-left"></i>
+                                    <input type="email" id="email" class="form-control"
+                                        placeholder="Cth: ahmad@gmail.com" autocomplete="email">
+                                    <i class="fa-solid fa-circle-check validation-icon success"></i>
+                                    <i class="fa-solid fa-circle-exclamation validation-icon error"></i>
+                                </div>
+                                <span class="validation-msg error" id="email-err">Format email tidak valid</span>
+                            </div>
+
+                            <!-- DOB -->
+                            <div class="input-group">
+                                <label class="input-label">Tanggal Lahir</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-regular fa-calendar icon-left"></i>
+                                    <input type="date" id="dob" class="form-control" style="padding-right: 15px;">
+                                </div>
+                            </div>
+
+                            <!-- Gender -->
+                            <div class="input-group">
+                                <label class="input-label">Jenis Kelamin</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="gender" value="L" checked>
+                                        <span>L</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="gender" value="P">
+                                        <span>P</span>
+                                    </label>
+                                    <label class="radio-label" title="Tidak Ingin Menyebutkan">
+                                        <input type="radio" name="gender" value="-">
+                                        <span>Sembunyikan</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label class="input-label">Password</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-lock icon-left"></i>
+                                    <input type="password" id="password" class="form-control"
+                                        placeholder="Buat password yang kuat" style="padding-right: 40px;">
+                                    <i class="fa-regular fa-eye toggle-password"
+                                        onclick="togglePass('password', this)"></i>
+                                </div>
+                                <div class="strength-meter" id="strength-container">
+                                    <div class="strength-bars">
+                                        <div class="strength-bar"></div>
+                                        <div class="strength-bar"></div>
+                                        <div class="strength-bar"></div>
+                                        <div class="strength-bar"></div>
+                                    </div>
+                                    <div class="strength-text" id="strength-text">Belum diisi</div>
+                                </div>
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label class="input-label">Konfirmasi Password</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-lock icon-left"></i>
+                                    <input type="password" id="repassword" class="form-control"
+                                        placeholder="Ketik ulang password" style="padding-right: 40px;">
+                                    <i class="fa-regular fa-eye toggle-password"
+                                        onclick="togglePass('repassword', this)"></i>
+                                </div>
+                                <span class="validation-msg error" id="repassword-err">Password tidak cocok!</span>
+                            </div>
+                        </div>
+
+                        <!-- CAPTCHA -->
+                        <div class="captcha-box" id="captcha-box" onclick="verifyCaptcha()">
+                            <div class="captcha-left">
+                                <div class="captcha-checkbox" id="captcha-check"><i class="fa-solid fa-check"></i></div>
+                                <span class="captcha-text">Saya bukan robot</span>
+                            </div>
+                            <div class="captcha-logo">
+                                <i class="fa-solid fa-arrows-spin"></i>
+                                <span>reCAPTCHA</span>
+                            </div>
+                        </div>
+
+                        <!-- Agreements -->
+                        <div class="agreement-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="chk-tnc">
+                                <span>Saya telah membaca dan menyetujui <a href="#">Syarat & Ketentuan</a> Padud
+                                    Coffee.</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="chk-privacy">
+                                <span>Saya menyetujui <a href="#">Kebijakan Privasi</a> dan pengelolaan data
+                                    saya.</span>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn-main" id="btn-submit">
+                            DAFTAR SEKARANG <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <!-- Social UI -->
+                        <div class="divider">ATAU DAFTAR DENGAN</div>
+                        <div class="social-group">
+                            <button type="button" class="btn-social google"
+                                onclick="showToast('Login Google dalam pengembangan', 'warning', 'Pemberitahuan')"><i
+                                    class="fa-brands fa-google"></i></button>
+                            <button type="button" class="btn-social apple"
+                                onclick="showToast('Login Apple dalam pengembangan', 'warning', 'Pemberitahuan')"><i
+                                    class="fa-brands fa-apple"></i></button>
+                            <button type="button" class="btn-social facebook"
+                                onclick="showToast('Login Facebook dalam pengembangan', 'warning', 'Pemberitahuan')"><i
+                                    class="fa-brands fa-facebook-f"></i></button>
+                        </div>
+
+                        <!-- Login Link -->
+                        <div class="login-link">
+                            Sudah memiliki akun? <a href="index.html">MASUK SEKARANG</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP MODAL -->
+    <div class="modal-overlay" id="otp-modal">
+        <div class="modal-content">
+            <i class="fa-solid fa-shield-halved modal-icon"></i>
+            <h2 class="modal-title">Verifikasi OTP</h2>
+            <p class="modal-desc">Kami telah mengirimkan 6 digit kode OTP ke nomor <strong
+                    id="otp-phone-display">0812***</strong>. Silakan masukkan kode tersebut di bawah ini.</p>
+
+            <div class="otp-inputs" id="otp-inputs">
+                <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" onkeyup="moveOtp(this, 0)">
+                <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" onkeyup="moveOtp(this, 1)">
+                <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" onkeyup="moveOtp(this, 2)">
+                <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" onkeyup="moveOtp(this, 3)">
+                <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" onkeyup="moveOtp(this, 4)">
+                <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" onkeyup="moveOtp(this, 5)">
+            </div>
+
+            <div class="countdown" id="otp-timer">Kirim ulang dalam 01:00</div>
+            <div style="margin-bottom: 25px;">
+                <span class="resend-link" id="btn-resend" onclick="resendOtp()">Kirim Ulang Kode OTP</span>
+            </div>
+
+            <button class="btn-main" id="btn-verify" onclick="verifyOtp()">
+                Verifikasi & Selesai <i class="fa-solid fa-check"></i>
+            </button>
+            <button style="margin-top: 15px; color: var(--text-muted); font-size: 14px; font-weight: 600;"
+                onclick="closeOtpModal()">Batalkan</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. LOADER LOGIC ---
+        const runLoader = () => {
+            const bar = document.getElementById('loader-bar');
+            const txt = document.getElementById('loader-text');
+            const screen = document.getElementById('loader-screen');
+            const main = document.getElementById('main-content');
+
+            let progress = 0;
+            // Fake progression: slows down towards end
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+
+                bar.style.width = `${progress}%`;
+                txt.innerText = Math.floor(progress);
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        screen.style.opacity = '0';
+                        setTimeout(() => {
+                            screen.style.display = 'none';
+                            main.style.display = 'block';
+                            main.style.animation = 'fadeIn 0.5s ease forwards';
+                        }, 500);
+                    }, 500);
+                }
+            }, 200); // approx 2-3 seconds
+        };
+
+        window.onload = runLoader;
+
+        // --- 2. TOAST SYSTEM ---
+        const showToast = (message, type = 'success', title = '') => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon = 'fa-circle-check';
+            if (type === 'error') icon = 'fa-circle-xmark';
+            if (type === 'warning') icon = 'fa-triangle-exclamation';
+
+            if (!title) {
+                title = type === 'success' ? 'Berhasil' : type === 'error' ? 'Gagal' : 'Peringatan';
+            }
+
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} toast-icon"></i>
+                <div class="toast-body">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-msg">${message}</div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            // Remove after 4s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        };
+
+        // --- 3. UI TOGGLES ---
+        const togglePass = (id, iconEl) => {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconEl.classList.remove('fa-eye');
+                iconEl.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                iconEl.classList.remove('fa-eye-slash');
+                iconEl.classList.add('fa-eye');
+            }
+        };
+
+        // --- 4. REALTIME VALIDATION ---
+        let isCaptchaVerified = false;
+
+        const setValid = (el, isValid, errMsgId = null, succMsgId = null) => {
+            if (isValid) {
+                el.classList.remove('is-invalid');
+                el.classList.add('is-valid');
+                if (errMsgId) document.getElementById(errMsgId).style.display = 'none';
+                if (succMsgId) document.getElementById(succMsgId).style.display = 'block';
+            } else {
+                el.classList.remove('is-valid');
+                el.classList.add('is-invalid');
+                if (errMsgId) document.getElementById(errMsgId).style.display = 'block';
+                if (succMsgId) document.getElementById(succMsgId).style.display = 'none';
+            }
+        };
+
+        const resetValid = (el, errMsgId = null, succMsgId = null) => {
+            el.classList.remove('is-valid', 'is-invalid');
+            if (errMsgId) document.getElementById(errMsgId).style.display = 'none';
+            if (succMsgId) document.getElementById(succMsgId).style.display = 'none';
+        }
+
+        // Username
+        document.getElementById('username').addEventListener('input', function (e) {
+            const val = e.target.value;
+            if (val.length === 0) return resetValid(this, 'username-err', 'username-succ');
+            const regex = /^[a-zA-Z0-9_]{5,30}$/;
+            if (regex.test(val)) {
+                // Simulate AJAX check delay
+                setTimeout(() => {
+                    // Let's pretend "admin" is taken
+                    if (val.toLowerCase() === 'admin' || val.toLowerCase() === 'padud') {
+                        setValid(this, false, 'username-err', 'username-succ');
+                        document.getElementById('username-err').innerText = 'Username sudah dipakai orang lain';
+                    } else {
+                        setValid(this, true, 'username-err', 'username-succ');
+                    }
+                }, 300);
+            } else {
+                setValid(this, false, 'username-err', 'username-succ');
+                document.getElementById('username-err').innerText = 'Minimal 5 karakter, hanya huruf, angka, underscore';
+            }
+        });
+
+        // Email
+        document.getElementById('email').addEventListener('input', function (e) {
+            const val = e.target.value;
+            if (val.length === 0) return resetValid(this, 'email-err');
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            setValid(this, regex.test(val), 'email-err');
+        });
+
+        // Phone
+        document.getElementById('phone').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9]/g, ''); // Numbers only
+            const val = this.value;
+            if (val.length === 0) return resetValid(this, 'phone-err');
+            setValid(this, val.length >= 10 && val.length <= 15, 'phone-err');
+        });
+
+        // Password Strength
+        document.getElementById('password').addEventListener('input', function (e) {
+            const val = e.target.value;
+            const container = document.getElementById('strength-container');
+            const txt = document.getElementById('strength-text');
+
+            // Check Confirm match if filled
+            const repass = document.getElementById('repassword');
+            if (repass.value) repass.dispatchEvent(new Event('input'));
+
+            if (val.length === 0) {
+                container.className = 'strength-meter';
+                txt.innerText = 'Belum diisi';
+                txt.style.color = 'var(--text-muted)';
+                return;
+            }
+
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++; // Special char
+
+            container.className = `strength-meter strength-${score}`;
+
+            if (score <= 1) { txt.innerText = 'Weak'; txt.style.color = 'var(--danger)'; }
+            else if (score === 2) { txt.innerText = 'Medium'; txt.style.color = 'var(--warning)'; }
+            else if (score === 3) { txt.innerText = 'Strong'; txt.style.color = '#8BC34A'; }
+            else if (score >= 4) { txt.innerText = 'Very Strong'; txt.style.color = 'var(--success)'; }
+        });
+
+        // Confirm Password
+        document.getElementById('repassword').addEventListener('input', function (e) {
+            const pass = document.getElementById('password').value;
+            const val = e.target.value;
+            if (val.length === 0) return resetValid(this, 'repassword-err');
+            setValid(this, val === pass && pass.length > 0, 'repassword-err');
+        });
+
+        // CAPTCHA
+        const verifyCaptcha = () => {
+            const box = document.getElementById('captcha-box');
+            if (!isCaptchaVerified) {
+                box.style.pointerEvents = 'none';
+                box.style.opacity = '0.7';
+                setTimeout(() => {
+                    isCaptchaVerified = true;
+                    box.classList.add('verified');
+                    box.style.opacity = '1';
+                    box.style.pointerEvents = 'auto';
+                    document.querySelector('.captcha-text').innerText = 'Terverifikasi';
+                }, 800);
+            }
+        };
+
+        // --- 5. REGISTRATION SUBMIT & OTP ---
+        let otpTimer;
+
+        const handleRegister = () => {
+            // Basic check before modal
+            const name = document.getElementById('fullname').value;
+            const phone = document.getElementById('phone').value;
+            const pass = document.getElementById('password').value;
+            const tnc = document.getElementById('chk-tnc');
+            const priv = document.getElementById('chk-privacy');
+
+            tnc.classList.remove('is-invalid');
+            priv.classList.remove('is-invalid');
+
+            if (!name || !phone || !pass) {
+                showToast("Mohon lengkapi form dengan benar", "error");
+                return;
+            }
+            if (!isCaptchaVerified) {
+                showToast("Selesaikan verifikasi CAPTCHA", "warning");
+                return;
+            }
+            if (!tnc.checked || !priv.checked) {
+                if (!tnc.checked) tnc.classList.add('is-invalid');
+                if (!priv.checked) priv.classList.add('is-invalid');
+                showToast("Anda harus menyetujui Syarat & Kebijakan kami", "warning");
+                return;
+            }
+
+            // Button Loading
+            const btn = document.getElementById('btn-submit');
+            btn.classList.add('loading');
+
+            // Simulate API request
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                showToast("OTP telah dikirim ke WhatsApp Anda", "success", "OTP Terkirim");
+                openOtpModal(phone);
+            }, 1500);
+        };
+
+        const openOtpModal = (phone) => {
+            // Mask phone
+            const masked = phone.substring(0, 4) + '****' + phone.substring(phone.length - 3);
+            document.getElementById('otp-phone-display').innerText = masked;
+            document.getElementById('otp-modal').classList.add('active');
+
+            // Clear inputs
+            const inputs = document.querySelectorAll('.otp-inputs input');
+            inputs.forEach(i => i.value = '');
+            setTimeout(() => inputs[0].focus(), 500);
+
+            startOtpTimer(60);
+        };
+
+        const closeOtpModal = () => {
+            document.getElementById('otp-modal').classList.remove('active');
+            clearInterval(otpTimer);
+        };
+
+        const moveOtp = (el, index) => {
+            const val = el.value;
+            const inputs = document.querySelectorAll('.otp-inputs input');
+
+            // Move next
+            if (val.length === 1 && index < 5) {
+                inputs[index + 1].focus();
+            }
+            // Move prev on backspace (handled by onkeyup checking empty)
+            if (val.length === 0 && index > 0 && event.key === 'Backspace') {
+                inputs[index - 1].focus();
+            }
+        };
+
+        const startOtpTimer = (seconds) => {
+            clearInterval(otpTimer);
+            const display = document.getElementById('otp-timer');
+            const resend = document.getElementById('btn-resend');
+            resend.classList.remove('active');
+
+            let remaining = seconds;
+
+            const updateUI = () => {
+                const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+                const s = (remaining % 60).toString().padStart(2, '0');
+                display.innerText = `Kirim ulang dalam ${m}:${s}`;
+
+                if (remaining <= 0) {
+                    clearInterval(otpTimer);
+                    display.innerText = "Kode telah kedaluwarsa";
+                    resend.classList.add('active');
+                }
+                remaining--;
+            };
+
+            updateUI();
+            otpTimer = setInterval(updateUI, 1000);
+        };
+
+        const resendOtp = () => {
+            const resend = document.getElementById('btn-resend');
+            if (resend.classList.contains('active')) {
+                showToast("OTP baru telah dikirim", "success");
+                startOtpTimer(60);
+            }
+        };
+
+        const verifyOtp = () => {
+            const inputs = document.querySelectorAll('.otp-inputs input');
+            let code = '';
+            inputs.forEach(i => code += i.value);
+
+            const btn = document.getElementById('btn-verify');
+
+            if (code.length < 6) {
+                showToast("Masukkan 6 digit kode OTP", "warning");
+                return;
+            }
+
+            // Simulate verification
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Memverifikasi...';
+            btn.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                btn.innerHTML = 'Verifikasi & Selesai <i class="fa-solid fa-check"></i>';
+                btn.style.pointerEvents = 'auto';
+
+                // For demo, accept any 6 digits
+                closeOtpModal();
+                showToast("Pendaftaran Member Berhasil!", "success", "Selamat Datang");
+                setTimeout(() => {
+                    window.location.href = 'profile.html'; // Redirect to profile
+                }, 2000);
+
+            }, 1500);
+        };
+
+    </script>
+</body>
+
+</html>

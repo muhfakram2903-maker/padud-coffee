@@ -1,0 +1,954 @@
+<?php
+session_start();
+$is_member = false; 
+$user_name = $is_member ? "Budi Santoso" : "Guest Customer";
+$user_points = $is_member ? 1250 : 0;
+$order_id = "ORD-" . date('Ymd') . rand(1000, 9999);
+$table_no = "A-12";
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pembayaran | Padud Coffee</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* === Variables === */
+        :root {
+            --bg-cream: #FDFBF7;
+            --bg-secondary: #F4F1EA;
+            --primary-navy: #1A2B4C;
+            --primary-light: #2A4072;
+            --accent-gold: #D4AF37;
+            --text-dark: #1A2B4C;
+            --text-light: #7A869A;
+            --success: #2ECC71;
+            --danger: #FF4757;
+            --warning: #F39C12;
+            --white: #FFFFFF;
+            --shadow-sm: 0 4px 12px rgba(26, 43, 76, 0.04);
+            --shadow-md: 0 10px 24px rgba(26, 43, 76, 0.08);
+            --border-radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-cream); color: var(--text-dark); padding-bottom: 100px; overflow-x: hidden; }
+        button { border: none; background: none; cursor: pointer; outline: none; transition: var(--transition); }
+        a { text-decoration: none; color: inherit; }
+
+        /* === Utilities === */
+        .fw-800 { font-weight: 800; }
+        .fw-700 { font-weight: 700; }
+        .fw-600 { font-weight: 600; }
+        .text-navy { color: var(--primary-navy); }
+        .text-light { color: var(--text-light); }
+        .text-gold { color: var(--accent-gold); }
+        .text-success { color: var(--success); }
+        
+        .page-container {
+            width: 100%;
+            padding: 20px;
+        }
+
+        /* === Header === */
+        .header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+            z-index: 100;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .btn-back {
+            width: 35px;
+            height: 35px;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-navy);
+            font-size: 16px;
+        }
+
+        .header-info {
+            text-align: right;
+        }
+
+        /* === Cards === */
+        .section-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--primary-navy);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* === Invoice Summary === */
+        .invoice-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .invoice-item .item-name { font-weight: 600; }
+        .invoice-item .item-qty { color: var(--text-light); font-size: 12px; }
+        
+        .invoice-divider {
+            height: 1px;
+            background: dashed 1px #E2E8F0;
+            margin: 15px 0;
+        }
+
+        .invoice-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .invoice-row.total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #E2E8F0;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--primary-navy);
+        }
+
+        /* === Voucher & Points === */
+        .promo-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(255, 140, 0, 0.1) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 15px 20px;
+            border-radius: 16px;
+            color: var(--primary-navy);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .point-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+        }
+        
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* === Payment Methods === */
+        .payment-category {
+            margin-bottom: 10px;
+        }
+        .payment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .payment-header.active {
+            background: var(--primary-navy);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+        .payment-body {
+            display: none;
+            background: white;
+            border: 1px solid #E2E8F0;
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            padding: 10px;
+        }
+        .payment-body.active { display: block; }
+        
+        .method-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .method-item:last-child { margin-bottom: 0; }
+        .method-item.selected {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.05);
+        }
+        .method-icon {
+            width: 40px; height: 40px; border-radius: 10px; background: var(--bg-secondary);
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .radio-custom {
+            width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ccc;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .method-item.selected .radio-custom { border-color: var(--accent-gold); }
+        .method-item.selected .radio-custom::after {
+            content: ''; width: 10px; height: 10px; background: var(--accent-gold); border-radius: 50%;
+        }
+
+        /* === Sticky Bottom Action === */
+        .bottom-action {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
+            border-radius: 24px 24px 0 0;
+            z-index: 90;
+        }
+        .btn-pay {
+            width: 100%;
+            background: var(--primary-navy);
+            color: white;
+            padding: 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(26,43,76,0.25);
+        }
+
+        /* === Modal Simulasi Pembayaran === */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,43,76,0.8); backdrop-filter: blur(5px); z-index: 1000; opacity: 0; pointer-events: none; transition: var(--transition); }
+        .overlay.active { opacity: 1; pointer-events: all; }
+        
+        .payment-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            width: 90%; max-width: 400px; background: white; border-radius: 24px; padding: 30px 20px;
+            z-index: 1001; opacity: 0; pointer-events: none; transition: var(--transition);
+            text-align: center;
+        }
+        .payment-modal.active { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
+        
+        .qr-box {
+            width: 200px; height: 200px; margin: 20px auto; background: #eee; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center; font-size: 50px; color: #ccc;
+        }
+        
+        .timer { font-size: 24px; font-weight: 800; color: var(--danger); margin: 15px 0; }
+
+        /* === Receipt & Tracking View === */
+        .receipt-header {
+            background: var(--primary-navy);
+            color: white;
+            padding: 40px 20px 60px;
+            text-align: center;
+            border-radius: 0 0 30px 30px;
+        }
+        .success-icon {
+            width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 40px;
+            color: var(--success); margin: 0 auto 20px;
+        }
+        
+        .receipt-card {
+            background: white; border-radius: 24px; padding: 25px; margin: -40px 20px 20px;
+            box-shadow: var(--shadow-md); position: relative; z-index: 10;
+        }
+
+        /* Timeline */
+        .timeline { margin-top: 30px; padding-left: 20px; }
+        .tl-item { position: relative; padding-left: 30px; padding-bottom: 30px; }
+        .tl-item:last-child { padding-bottom: 0; }
+        .tl-item::before {
+            content: ''; position: absolute; left: 0; top: 0; width: 2px; height: 100%;
+            background: #E2E8F0;
+        }
+        .tl-item:last-child::before { display: none; }
+        .tl-dot {
+            position: absolute; left: -6px; top: 0; width: 14px; height: 14px;
+            border-radius: 50%; background: #E2E8F0; border: 3px solid white; box-shadow: 0 0 0 1px #E2E8F0;
+        }
+        .tl-item.active .tl-dot { background: var(--success); box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.3); }
+        .tl-item.active::before { background: var(--success); }
+        .tl-title { font-weight: 800; font-size: 15px; color: var(--primary-navy); margin-bottom: 4px; }
+        .tl-time { font-size: 12px; color: var(--text-light); }
+
+        /* === Responsive & Centering === */
+        @media (min-width: 900px) {
+            .page-container, .bottom-action { max-width: 1000px; margin-left: auto !important; margin-right: auto !important; left: 0; right: 0; }
+            .header { padding-left: max(20px, calc(50% - 500px)); padding-right: max(20px, calc(50% - 500px)); }
+            .receipt-header { padding-left: calc(50% - 500px); padding-right: calc(50% - 500px); }
+            .receipt-card { max-width: 960px; margin-left: auto; margin-right: auto; }
+        }
+
+        /* Toast */
+        .toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: var(--primary-navy); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: 0 10px 30px rgba(26,43,76,0.3); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; z-index: 2000; transition: top 0.4s; }
+        .toast.show { top: 30px; }
+
+        /* Skeleton */
+        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeletonLoading 1.5s infinite; border-radius: 4px; }
+        @keyframes skeletonLoading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- ================= VIEW 1: CHECKOUT FORM ================= -->
+    <div id="view-checkout">
+        <header class="header">
+            <div class="header-title">
+                <button class="btn-back" onclick="window.location.href='cart.html'"><i class="fa-solid fa-arrow-left"></i></button>
+                <span>Pembayaran</span>
+            </div>
+            <div class="header-info">
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Meja</div>
+                <div style="font-size: 14px; font-weight: 800; color: var(--primary-navy);" id="display-table-header"></div>
+            </div>
+        </header>
+
+        <div class="page-container">
+            <!-- Order ID -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <span style="font-size: 12px; color: var(--text-light); font-weight: 600;">Order ID</span>
+                <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-navy); letter-spacing: 1px;" id="display-order-id"></h3>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="section-card">
+                <div class="section-title"><i class="fa-solid fa-user"></i> Informasi Pemesan</div>
+                <div style="margin-top: 10px;">
+                    <label style="font-size: 13px; font-weight: 700; color: var(--text-light); margin-bottom: 8px; display: block;">Nama Pemesan</label>
+                    <input type="text" id="cust-name" placeholder="Masukkan nama Anda..." value="" style="width: 100%; padding: 14px 16px; border: 1px solid #E2E8F0; border-radius: 14px; font-size: 15px; font-weight: 600; color: var(--primary-navy); outline: none; transition: var(--transition);">
+                </div>
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 13px; font-weight: 700; color: var(--text-light); margin-bottom: 8px; display: block;">Nomor Meja</label>
+                    <div style="width: 100%; padding: 14px 16px; background: var(--bg-secondary); border: 1px solid #E2E8F0; border-radius: 14px; font-size: 15px; font-weight: 800; color: var(--primary-navy);" id="display-table-info"></div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="section-card">
+                <div class="section-title"><i class="fa-solid fa-receipt"></i> Ringkasan Pesanan</div>
+                
+                <div id="invoice-items">
+                    <!-- JS Rendered -->
+                    <div class="skeleton" style="height: 20px; width: 100%; margin-bottom: 10px;"></div>
+                    <div class="skeleton" style="height: 20px; width: 80%;"></div>
+                </div>
+                
+                <div class="invoice-divider"></div>
+                
+                <div class="invoice-row">
+                    <span>Subtotal</span>
+                    <span id="inv-subtotal" class="fw-700 text-navy">Rp 0</span>
+                </div>
+                <div class="invoice-row">
+                    <span>Pajak & Layanan</span>
+                    <span id="inv-tax" class="fw-700 text-navy">+Rp 2.500</span>
+                </div>
+                <div class="invoice-row" id="row-voucher" style="display: none; color: var(--success);">
+                    <span>Diskon Promo</span>
+                    <span id="inv-voucher" class="fw-700">-Rp 0</span>
+                </div>
+                <div class="invoice-row" id="row-points" style="display: none; color: var(--accent-gold);">
+                    <span>Diskon Poin</span>
+                    <span id="inv-points" class="fw-700">-Rp 0</span>
+                </div>
+                
+                <div class="invoice-row total">
+                    <span>Total Pembayaran</span>
+                    <span id="inv-total">Rp 0</span>
+                </div>
+            </div>
+
+            <!-- Vouchers & Points -->
+            <div class="section-card">
+                <div class="section-title"><i class="fa-solid fa-tags"></i> Promo & Poin</div>
+                
+                <button class="promo-btn" onclick="openVoucherModal()">
+                    <div style="display:flex; align-items:center; gap: 10px;">
+                        <i class="fa-solid fa-ticket" style="font-size: 18px; color: #FF8C00;"></i>
+                        <span id="active-promo-label">Gunakan Promo / Voucher</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color: var(--text-light);"></i>
+                </button>
+
+                <div class="point-switch" id="point-switch-container">
+                    <div style="text-align: left; flex: 1;">
+                        <div class="fw-800 text-navy" style="margin-bottom: 4px;"><i class="fa-solid fa-star text-gold"></i> Tukar Poin Member</div>
+                        <div style="font-size: 12px; color: var(--text-light);" id="point-saldo-text">
+                            Saldo: <b>0</b> Poin
+                        </div>
+                    </div>
+                    <label class="switch" id="point-switch-label">
+                        <input type="checkbox" id="usePoints" onchange="togglePoints()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="section-card" style="margin-bottom: 120px;">
+                <div class="section-title"><i class="fa-solid fa-wallet"></i> Metode Pembayaran</div>
+                
+                <!-- QRIS -->
+                <div class="payment-category">
+                    <div class="payment-header active" onclick="togglePaymentAcc(this, 'qris')">
+                        <span><i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> QRIS (All Payment)</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div class="payment-body active" id="acc-qris">
+                        <div class="method-item selected" onclick="selectMethod(this, 'QRIS')">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="method-icon" style="background: #E8F5E9; color: #2E7D32;"><i class="fa-solid fa-qrcode"></i></div>
+                                <div>
+                                    <div class="fw-700 text-navy">QRIS</div>
+                                    <div style="font-size: 11px; color: var(--text-light);">Gopay, OVO, Dana, LinkAja, dll</div>
+                                </div>
+                            </div>
+                            <div class="radio-custom"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- E-Wallet -->
+                <div class="payment-category">
+                    <div class="payment-header" onclick="togglePaymentAcc(this, 'ewallet')">
+                        <span><i class="fa-solid fa-mobile-screen" style="margin-right: 8px;"></i> E-Wallet Khusus</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div class="payment-body" id="acc-ewallet">
+                        <div class="method-item" onclick="selectMethod(this, 'GoPay')">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="method-icon" style="background: #E3F2FD; color: #1565C0;"><i class="fa-solid fa-wallet"></i></div>
+                                <div class="fw-700 text-navy">GoPay / GoPay Later</div>
+                            </div>
+                            <div class="radio-custom"></div>
+                        </div>
+                        <div class="method-item" onclick="selectMethod(this, 'ShopeePay')">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="method-icon" style="background: #FFF3E0; color: #EF6C00;"><i class="fa-solid fa-bag-shopping"></i></div>
+                                <div class="fw-700 text-navy">ShopeePay</div>
+                            </div>
+                            <div class="radio-custom"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cash -->
+                <div class="payment-category">
+                    <div class="payment-header" onclick="togglePaymentAcc(this, 'cash')">
+                        <span><i class="fa-solid fa-money-bill-wave" style="margin-right: 8px;"></i> Tunai Kasir</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div class="payment-body" id="acc-cash">
+                        <div class="method-item" onclick="selectMethod(this, 'Tunai')">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="method-icon" style="background: #F1F8E9; color: #558B2F;"><i class="fa-solid fa-cash-register"></i></div>
+                                <div>
+                                    <div class="fw-700 text-navy">Bayar di Kasir</div>
+                                    <div style="font-size: 11px; color: var(--text-light);">Selesaikan pembayaran di meja kasir</div>
+                                </div>
+                            </div>
+                            <div class="radio-custom"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Sticky Pay Button -->
+        <div class="bottom-action">
+            <button class="btn-pay" id="btn-pay" onclick="processCheckout()">
+                <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;">
+                    <span style="font-size: 11px; opacity:0.8;">Bayar pakai <span id="lbl-method">QRIS</span></span>
+                    <span id="btn-pay-total" style="font-size: 18px;">Rp 0</span>
+                </div>
+                <div style="display:flex; align-items:center; gap: 8px;">
+                    Bayar <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ================= VIEW 2: PAYMENT MODAL SIMULATION ================= -->
+    <div class="overlay" id="overlay"></div>
+    <div class="payment-modal" id="modal-payment">
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--primary-navy); margin-bottom: 5px;">Menunggu Pembayaran</h3>
+        <p style="font-size: 13px; color: var(--text-light);">Selesaikan pembayaran sebelum waktu habis</p>
+        
+        <div class="timer" id="countdown">15:00</div>
+        
+        <div style="font-size: 14px; font-weight: 700; color: var(--primary-navy); margin-bottom: 10px;">Metode: <span id="sim-method" class="text-gold">QRIS</span></div>
+        
+        <div class="qr-box" id="qr-display">
+            <i class="fa-solid fa-qrcode"></i>
+        </div>
+        <p id="qr-instruction" style="font-size: 12px; color: var(--text-light); margin-bottom: 25px;">Scan QR menggunakan aplikasi e-wallet atau m-banking Anda.</p>
+        
+        <!-- Simulasi Dummy Button -->
+        <button style="width: 100%; background: var(--success); color: white; padding: 14px; border-radius: 16px; font-weight: 800; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);" onclick="completePayment()">
+            [Simulasi] Pembayaran Berhasil
+        </button>
+        <button style="width: 100%; background: var(--bg-secondary); color: var(--text-light); padding: 14px; border-radius: 16px; font-weight: 700;" onclick="cancelPayment()">
+            Batal
+        </button>
+    </div>
+
+
+    <!-- ================= VIEW 3: RECEIPT & TRACKING ================= -->
+    <div id="view-receipt" style="display: none;">
+        <div class="receipt-header">
+            <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+            <h2 style="font-weight: 800; margin-bottom: 5px;">Pembayaran Berhasil!</h2>
+            <p style="opacity: 0.8; font-size: 14px;">Pesanan Anda sedang diproses oleh barista kami.</p>
+        </div>
+
+        <div class="receipt-card">
+            <div style="text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #E2E8F0;">
+                <img src="../assets/logo/logo.png" alt="Padud Coffee" style="height: 40px; margin-bottom: 10px;" onerror="this.style.display='none'">
+                <h3 style="font-weight: 800; color: var(--primary-navy);">Padud Coffee</h3>
+                <div style="font-size: 12px; color: var(--text-light);">Meja <?php echo $table_no; ?> • Order <?php echo $order_id; ?></div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+                <span class="text-light">Waktu Transaksi</span>
+                <span class="fw-700 text-navy" id="rec-time"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
+                <span class="text-light">Metode Pembayaran</span>
+                <span class="fw-700 text-navy" id="rec-method">QRIS</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px;">
+                <span class="text-light">Total Dibayar</span>
+                <span class="fw-800 text-success" id="rec-total" style="font-size: 16px;">Rp 0</span>
+            </div>
+            
+            <button style="width: 100%; background: var(--bg-secondary); color: var(--primary-navy); padding: 12px; border-radius: 12px; font-weight: 700; margin-bottom: 10px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="showToast('Mengunduh struk digital...')">
+                <i class="fa-solid fa-download"></i> Unduh Struk
+            </button>
+        </div>
+
+        <!-- Tracking Timeline -->
+        <div class="page-container" style="padding-top: 0;">
+            <div class="section-card">
+                <div class="section-title"><i class="fa-solid fa-location-dot"></i> Status Pesanan</div>
+                
+                <div class="timeline">
+                    <div class="tl-item active">
+                        <div class="tl-dot"></div>
+                        <div class="tl-title">Menunggu Pembayaran</div>
+                        <div class="tl-time" id="time-wait">--:--</div>
+                    </div>
+                    <div class="tl-item active" id="tl-process">
+                        <div class="tl-dot"></div>
+                        <div class="tl-title">Pembayaran Berhasil</div>
+                        <div class="tl-time" id="time-paid">--:--</div>
+                    </div>
+                    <div class="tl-item" id="tl-prepare">
+                        <div class="tl-dot"></div>
+                        <div class="tl-title">Sedang Disiapkan</div>
+                        <div class="tl-time">Pesanan sedang dibuat oleh barista</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-title">Siap Diantar</div>
+                        <div class="tl-time">Pesanan akan diantar ke Meja <?php echo $table_no; ?></div>
+                    </div>
+                </div>
+            </div>
+
+            <button style="width: 100%; background: var(--primary-navy); color: white; padding: 16px; border-radius: 16px; font-weight: 800; box-shadow: 0 4px 15px rgba(26,43,76,0.2); margin-top: 10px;" onclick="window.location.href='menu.html'">
+                Kembali ke Beranda
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Voucher Modal -->
+    <div class="overlay" id="overlayVoucher" onclick="closeVoucherModal()"></div>
+    <div class="payment-modal" id="voucherModal" style="padding: 20px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--primary-navy);">Pilih Voucher</h3>
+            <button onclick="closeVoucherModal()" style="font-size: 20px; color: var(--text-light);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-bottom: 20px;">
+            <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--primary-navy); margin-bottom: 4px;">Potongan Harga 10RB</h4>
+                    <p style="font-size: 11px; color: var(--text-light);">Diskon Rp 10.000, Min. belanja Rp 50.000</p>
+                </div>
+                <button onclick="selectVoucher(10000, 'Potongan Harga 10RB')" style="background: var(--primary-navy); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;">Pakai</button>
+            </div>
+            <div style="border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--primary-navy); margin-bottom: 4px;">Diskon Kilat 5RB</h4>
+                    <p style="font-size: 11px; color: var(--text-light);">Diskon Rp 5.000, Tanpa minimum belanja</p>
+                </div>
+                <button onclick="selectVoucher(5000, 'Diskon Kilat 5RB')" style="background: var(--primary-navy); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;">Pakai</button>
+            </div>
+            <div style="border: 1px dashed var(--danger); border-radius: 12px; padding: 15px; display: flex; justify-content: center; align-items: center; margin-top: 10px; cursor: pointer;" onclick="selectVoucher(0, 'Gunakan Promo / Voucher')">
+                <h4 style="font-size: 13px; font-weight: 700; color: var(--danger);">Hapus Penggunaan Voucher</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Checkout Modal -->
+    <div class="overlay" id="overlayConfirm" onclick="closeConfirmModal()"></div>
+    <div class="payment-modal" id="confirmModal" style="padding: 25px; text-align: center;">
+        <div style="font-size: 40px; color: var(--warning); margin-bottom: 15px;"><i class="fa-solid fa-circle-exclamation"></i></div>
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--primary-navy); margin-bottom: 10px;">Konfirmasi Pembayaran</h3>
+        <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">Anda akan melakukan pembayaran sebesar <br><b id="confirm-total" class="text-navy" style="font-size:16px;">Rp0</b><br> dengan metode <b id="confirm-method" class="text-navy">QRIS</b>.</p>
+        
+        <div style="display: flex; gap: 10px;">
+            <button style="flex: 1; background: var(--bg-secondary); color: var(--text-light); padding: 14px; border-radius: 16px; font-weight: 700;" onclick="closeConfirmModal()">Batal</button>
+            <button style="flex: 1; background: var(--primary-navy); color: white; padding: 14px; border-radius: 16px; font-weight: 800; box-shadow: 0 4px 15px rgba(26,43,76,0.2);" onclick="executeCheckout()">Proses</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-msg">Notifikasi</span>
+    </div>
+
+    <!-- Script -->
+    <script>
+        const TAX_FEE = 2500;
+        let cart = [];
+        let subtotal = 0;
+        let grandTotal = 0;
+        let pointsDiscount = 0;
+        let voucherDiscount = 0;
+        let selectedMethod = 'QRIS';
+        let countdownTimer;
+        let orderId = "ORD-" + new Date().toISOString().slice(0,10).replace(/-/g,'') + Math.floor(1000 + Math.random() * 9000);
+
+        // User Data
+        const userPoints = parseInt("<?php echo $user_points; ?>") || 0;
+        const isMember = "<?php echo $is_member ? 'true' : 'false'; ?>" === "true";
+
+        const formatRupiah = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+
+        const showToast = (msg, isError = false) => {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.querySelector('i').className = isError ? 'fa-solid fa-circle-xmark' : 'fa-solid fa-circle-check';
+            toast.querySelector('i').style.color = isError ? 'var(--danger)' : 'var(--success)';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
+        const openVoucherModal = () => {
+            document.getElementById('overlayVoucher').classList.add('active');
+            document.getElementById('voucherModal').classList.add('active');
+        };
+
+        const closeVoucherModal = () => {
+            document.getElementById('overlayVoucher').classList.remove('active');
+            document.getElementById('voucherModal').classList.remove('active');
+        };
+
+        const selectVoucher = (amount, label) => {
+            localStorage.setItem('padud_active_voucher', amount);
+            localStorage.setItem('padud_active_voucher_label', label);
+            
+            voucherDiscount = amount;
+            const rowVoucher = document.getElementById('row-voucher');
+            
+            if (amount > 0) {
+                rowVoucher.style.display = 'flex';
+                document.getElementById('inv-voucher').innerText = '-' + formatRupiah(amount);
+                document.getElementById('active-promo-label').innerText = label;
+                document.getElementById('active-promo-label').style.color = 'var(--success)';
+                showToast("Voucher berhasil dipakai");
+            } else {
+                rowVoucher.style.display = 'none';
+                document.getElementById('active-promo-label').innerText = label;
+                document.getElementById('active-promo-label').style.color = 'var(--primary-navy)';
+                showToast("Voucher dilepas");
+            }
+            
+            // Re-calculate points discount if it's active
+            const cb = document.getElementById('usePoints');
+            if (cb && cb.checked) {
+                pointsDiscount = Math.max(0, Math.min(subtotal - voucherDiscount, userPoints));
+                document.getElementById('inv-points').innerText = '-' + formatRupiah(pointsDiscount);
+            }
+            
+            calculateTotal();
+            closeVoucherModal();
+        };
+
+        const loadCart = () => {
+            cart = JSON.parse(localStorage.getItem('padud_cart')) || [];
+            if(cart.length === 0) {
+                alert("Keranjang kosong! Kembali ke menu.");
+                window.location.href = 'menu.html';
+                return;
+            }
+
+            let html = '';
+            subtotal = 0;
+
+            cart.forEach(item => {
+                const totalItem = item.price * item.qty;
+                subtotal += totalItem;
+                html += `
+                    <div class="invoice-item">
+                        <div>
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-qty">${item.qty}x @ ${formatRupiah(item.price)}</div>
+                        </div>
+                        <div class="fw-700 text-navy">${formatRupiah(totalItem)}</div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('invoice-items').innerHTML = html;
+            
+            // Load Voucher
+            const storedVoucher = parseInt(localStorage.getItem('padud_active_voucher')) || 0;
+            const storedVoucherLabel = localStorage.getItem('padud_active_voucher_label');
+            
+            if (storedVoucher > 0) {
+                voucherDiscount = storedVoucher;
+                const rowVoucher = document.getElementById('row-voucher');
+                rowVoucher.style.display = 'flex';
+                document.getElementById('inv-voucher').innerText = '-' + formatRupiah(voucherDiscount);
+                
+                document.getElementById('active-promo-label').innerText = storedVoucherLabel || "Voucher Terpakai";
+                document.getElementById('active-promo-label').style.color = 'var(--primary-navy)';
+            }
+            
+            calculateTotal();
+        };
+
+        const calculateTotal = () => {
+            document.getElementById('inv-subtotal').innerText = formatRupiah(subtotal);
+            grandTotal = subtotal + TAX_FEE - pointsDiscount - voucherDiscount;
+            if (grandTotal < 0) grandTotal = 0;
+            
+            document.getElementById('inv-total').innerText = formatRupiah(grandTotal);
+            document.getElementById('btn-pay-total').innerText = formatRupiah(grandTotal);
+        };
+
+        const togglePoints = () => {
+            const cb = document.getElementById('usePoints');
+            const rowPoints = document.getElementById('row-points');
+            
+            if(cb.checked) {
+                // Max discount is subtotal - voucherDiscount or userPoints
+                pointsDiscount = Math.max(0, Math.min(subtotal - voucherDiscount, userPoints));
+                rowPoints.style.display = 'flex';
+                document.getElementById('inv-points').innerText = '-' + formatRupiah(pointsDiscount);
+                showToast(`Berhasil menggunakan ${pointsDiscount} Poin`);
+            } else {
+                pointsDiscount = 0;
+                rowPoints.style.display = 'none';
+                showToast(`Poin batal digunakan`);
+            }
+            calculateTotal();
+        };
+
+        // Accordion
+        const togglePaymentAcc = (el, id) => {
+            document.querySelectorAll('.payment-header').forEach(h => {
+                if(h !== el) h.classList.remove('active');
+            });
+            document.querySelectorAll('.payment-body').forEach(b => {
+                if(b.id !== 'acc-'+id) b.classList.remove('active');
+            });
+            
+            el.classList.toggle('active');
+            document.getElementById('acc-'+id).classList.toggle('active');
+        };
+
+        const selectMethod = (el, name) => {
+            document.querySelectorAll('.method-item').forEach(m => m.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedMethod = name;
+            document.getElementById('lbl-method').innerText = name;
+        };
+
+        const closeConfirmModal = () => {
+            document.getElementById('overlayConfirm').classList.remove('active');
+            document.getElementById('confirmModal').classList.remove('active');
+        };
+
+        // Checkout Process
+        const processCheckout = () => {
+            const custName = document.getElementById('cust-name').value.trim();
+            if(!custName) {
+                showToast("Nama pemesan wajib diisi!", true);
+                document.getElementById('cust-name').focus();
+                return;
+            }
+
+            document.getElementById('confirm-total').innerText = formatRupiah(grandTotal);
+            document.getElementById('confirm-method').innerText = selectedMethod;
+            document.getElementById('overlayConfirm').classList.add('active');
+            document.getElementById('confirmModal').classList.add('active');
+        };
+
+        const executeCheckout = () => {
+            closeConfirmModal();
+            const btn = document.getElementById('btn-pay');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<div style="width:100%; text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Memproses...</div>`;
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                showPaymentModal();
+            }, 800);
+        };
+
+        const showPaymentModal = () => {
+            document.getElementById('overlay').classList.add('active');
+            const modal = document.getElementById('modal-payment');
+            modal.classList.add('active');
+            
+            document.getElementById('sim-method').innerText = selectedMethod;
+            
+            // Adjust modal UI based on method
+            const qrBox = document.getElementById('qr-display');
+            const instruction = document.getElementById('qr-instruction');
+            
+            if(selectedMethod === 'Tunai') {
+                qrBox.innerHTML = `<i class="fa-solid fa-cash-register" style="font-size: 80px; color: var(--accent-gold);"></i>`;
+                instruction.innerText = `Silakan tunjukkan Order ID ${orderId} ke kasir untuk membayar tunai.`;
+            } else if (selectedMethod.includes('Pay')) {
+                qrBox.innerHTML = `<i class="fa-solid fa-mobile-screen" style="font-size: 80px; color: #1565C0;"></i>`;
+                instruction.innerText = `Anda akan dialihkan ke aplikasi ${selectedMethod} (Simulasi).`;
+            } else {
+                qrBox.innerHTML = `<img src="../assets/qris/qris.png" alt="QRIS" onerror="this.outerHTML='<i class=\\'fa-solid fa-qrcode\\' style=\\'font-size: 80px; color: #1A2B4C;\\'></i>'" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">`;
+                instruction.innerText = `Scan QR menggunakan aplikasi e-wallet atau m-banking Anda.`;
+            }
+
+            startTimer(15 * 60);
+        };
+
+        const cancelPayment = () => {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('modal-payment').classList.remove('active');
+            clearInterval(countdownTimer);
+        };
+
+        const startTimer = (duration) => {
+            let timer = duration, minutes, seconds;
+            const display = document.getElementById('countdown');
+            clearInterval(countdownTimer);
+            
+            countdownTimer = setInterval(() => {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(countdownTimer);
+                    display.textContent = "00:00";
+                    alert("Waktu pembayaran habis!");
+                    cancelPayment();
+                }
+            }, 1000);
+        };
+
+        const completePayment = () => {
+            clearInterval(countdownTimer);
+            document.getElementById('modal-payment').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+            
+            // Empty Cart
+            localStorage.removeItem('padud_cart');
+            
+            showToast("Pembayaran berhasil diverifikasi!");
+            
+            // Simulate processing then redirect
+            const btn = document.querySelector('#modal-payment button');
+            if(btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mengalihkan...`;
+            
+            setTimeout(() => {
+                window.location.href = 'history.html';
+            }, 1500);
+        };
+
+        const initUI = () => {
+            document.getElementById('display-order-id').innerText = orderId;
+            
+            const storedTable = localStorage.getItem('padud_table_no') || 'Meja 1';
+            document.getElementById('display-table-header').innerText = storedTable;
+            document.getElementById('display-table-info').innerText = storedTable;
+            
+            if(!isMember) {
+                document.getElementById('point-switch-container').style.opacity = '0.6';
+                document.getElementById('point-switch-container').style.background = 'var(--bg-secondary)';
+                document.getElementById('usePoints').disabled = true;
+                document.getElementById('point-saldo-text').innerHTML = 'Saldo: <b>0</b> Poin <span style="background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; margin-left: 5px;">HANYA MEMBER</span>';
+            } else {
+                document.getElementById('point-saldo-text').innerHTML = `Saldo: <b>${formatRupiah(userPoints).replace(/Rp\s?/,'')}</b> Poin (Setara Rp ${formatRupiah(userPoints).replace(/Rp\s?/,'')})`;
+            }
+        };
+
+        // Init
+        window.onload = () => {
+            initUI();
+            loadCart();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,621 @@
+<?php
+session_start();
+
+// Simulasi Login System
+$is_member = false; // Ubah ke true untuk testing member
+$user_name = $is_member ? "Budi Santoso" : "Guest Customer";
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Keranjang Pesanan | Padud Coffee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-cream: #FDFBF7;
+            --bg-secondary: #F4F1EA;
+            --primary-navy: #1A2B4C;
+            --primary-light: #2A4072;
+            --accent-gold: #D4AF37;
+            --danger: #FF4757;
+            --success: #25D366;
+            --text-dark: #1A2B4C;
+            --text-light: #7A869A;
+            --border-color: rgba(26,43,76,0.05);
+            --shadow-sm: 0 4px 12px rgba(26, 43, 76, 0.04);
+            --shadow-md: 0 10px 24px rgba(26, 43, 76, 0.08);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-cream); color: var(--text-dark); padding-bottom: 280px; }
+        a { text-decoration: none; color: inherit; }
+        button { border: none; background: none; cursor: pointer; outline: none; transition: var(--transition); }
+
+
+
+        /* === Top Nav Bar === */
+        .header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+            z-index: 100;
+            padding: 15px 20px;
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 42px; height: 42px; border-radius: 50%; background-color: var(--bg-secondary); color: var(--primary-navy); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); }
+        .user-details h4 { font-size: 15px; margin-bottom: 2px; font-weight: 700; letter-spacing: -0.3px; }
+        .user-badge { font-size: 10px; padding: 3px 10px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-guest { background-color: #F0F2F5; color: var(--text-light); }
+        .badge-member { background-color: rgba(212, 175, 55, 0.15); color: var(--accent-gold); }
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        .action-icon { position: relative; font-size: 22px; color: var(--primary-navy); padding: 5px; }
+        .badge-count { position: absolute; top: -4px; right: -6px; background-color: #FF4757; color: white; font-size: 10px; font-weight: 800; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(255, 71, 87, 0.3); }
+        .table-badge { background: var(--bg-secondary); color: var(--primary-navy); font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 12px; display: flex; align-items: center; gap: 6px; }
+
+        /* Promo Banner */
+        .promo-banner { margin: 15px 20px; background: linear-gradient(135deg, var(--primary-navy), var(--primary-light)); border-radius: 16px; padding: 15px; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+        .promo-text h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+        .promo-text p { font-size: 11px; color: rgba(255,255,255,0.8); }
+        .btn-promo-action { background: var(--accent-gold); color: var(--primary-navy); font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; box-shadow: 0 4px 10px rgba(212,175,55,0.3); }
+
+        /* Cart List */
+        .cart-list { padding: 20px 20px 10px; display: flex; flex-direction: column; gap: 15px; }
+        
+        .cart-item { background: white; border-radius: 16px; padding: 15px; display: flex; gap: 15px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); position: relative; overflow: hidden; transition: transform 0.3s, opacity 0.3s; }
+        .cart-item.removing { transform: translateX(100%); opacity: 0; }
+        
+        .item-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: var(--bg-secondary); flex-shrink: 0; }
+        .item-details { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .item-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .item-name { font-size: 15px; font-weight: 700; color: var(--primary-navy); line-height: 1.3; margin-bottom: 4px; padding-right: 10px; }
+        .btn-delete { color: var(--text-light); font-size: 16px; padding: 5px; transition: color 0.2s; }
+        .btn-delete:active { color: var(--danger); transform: scale(0.9); }
+        
+        .item-notes { font-size: 11px; color: #f39c12; margin-bottom: 8px; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .item-bottom { display: flex; justify-content: space-between; align-items: center; }
+        .item-price { font-size: 15px; font-weight: 800; color: var(--primary-navy); }
+        
+        .qty-control { display: flex; align-items: center; background: var(--bg-secondary); border-radius: 20px; padding: 4px; }
+        .btn-qty { width: 28px; height: 28px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: var(--primary-navy); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-qty:active { transform: scale(0.9); background: var(--primary-navy); color: white; }
+        .qty-val { width: 24px; text-align: center; font-size: 14px; font-weight: 700; color: var(--primary-navy); }
+
+        /* Empty State */
+        .empty-state { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; }
+        .empty-icon { width: 120px; height: 120px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+        .empty-icon i { font-size: 50px; color: var(--text-light); opacity: 0.5; }
+        .empty-title { font-size: 18px; font-weight: 800; color: var(--primary-navy); margin-bottom: 8px; }
+        .empty-desc { font-size: 14px; color: var(--text-light); margin-bottom: 25px; }
+        .btn-start { background: var(--primary-navy); color: white; padding: 14px 30px; border-radius: 25px; font-size: 15px; font-weight: 700; box-shadow: 0 8px 20px rgba(26,43,76,0.2); }
+        .btn-start:active { transform: scale(0.96); }
+
+        /* Sticky Summary Sheet */
+        .summary-sheet { position: fixed; bottom: calc(65px + env(safe-area-inset-bottom)); left: 0; width: 100%; background: white; border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: 0 -10px 30px rgba(26,43,76,0.08); padding: 25px 20px; z-index: 90; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .summary-sheet.hidden { transform: translateY(120%); }
+        
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: var(--text-light); font-weight: 500; }
+        .summary-row.discount { color: var(--success); font-weight: 600; }
+        .summary-row.total { font-size: 18px; font-weight: 800; color: var(--primary-navy); margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border-color); margin-bottom: 20px; }
+        
+        .btn-checkout { width: 100%; background: var(--primary-navy); color: white; padding: 16px; border-radius: 20px; font-size: 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 25px rgba(26,43,76,0.25); }
+        .btn-checkout:active { transform: scale(0.98); }
+        .checkout-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+        /* Toast */
+        .toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: var(--primary-navy); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: 0 10px 30px rgba(26,43,76,0.3); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; z-index: 2000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .toast.show { top: 30px; }
+        .toast i { color: var(--success); font-size: 16px; }
+
+        /* Overlay & Modal */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 43, 76, 0.4); backdrop-filter: blur(2px); z-index: 1000; opacity: 0; pointer-events: none; transition: var(--transition); }
+        .overlay.active { opacity: 1; pointer-events: all; }
+        .modal { position: fixed; bottom: 0; left: 0; transform: translateY(100%); width: 100%; background: white; border-radius: 24px 24px 0 0; padding: 25px 20px 80px; z-index: 1001; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 -10px 30px rgba(0,0,0,0.1); }
+        .modal.active { transform: translateY(0); }
+
+        /* === Bottom Navigation === */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-around; padding: 15px 0 calc(15px + env(safe-area-inset-bottom)); z-index: 100; border-top: 1px solid rgba(0, 0, 0, 0.02); }
+        .bnav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #9EABBf; font-size: 11px; width: 25%; font-weight: 500; }
+        .bnav-item.active { color: var(--primary-navy); font-weight: 700; }
+        .bnav-item i { font-size: 22px; margin-bottom: 2px; transition: var(--transition); }
+        .bnav-item.active i { transform: translateY(-3px); }
+        .bnav-cart-wrapper { position: relative; }
+
+        /* === Responsive & Desktop Layout === */
+        @media (min-width: 900px) {
+            /* Center the application wrapper for large screens */
+            .header-top,
+            .promo-banner,
+            .cart-list,
+            .empty-state,
+            .voucher-box {
+                max-width: 1000px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            /* Make header sticky wrapper fit the centered content */
+            .header {
+                padding-left: max(20px, calc(50% - 500px));
+                padding-right: max(20px, calc(50% - 500px));
+            }
+
+            /* Constrain Bottom Nav and Summary Sheet */
+            .bottom-nav,
+            .summary-sheet {
+                max-width: 1000px;
+                left: 0;
+                right: 0;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            .bottom-nav {
+                border-radius: 20px 20px 0 0;
+            }
+            .summary-sheet.hidden {
+                transform: translateY(120%);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .header-top,
+            .promo-banner,
+            .cart-list,
+            .empty-state,
+            .voucher-box,
+            .bottom-nav,
+            .summary-sheet {
+                max-width: 1200px;
+            }
+
+            .header {
+                padding-left: max(20px, calc(50% - 600px));
+                padding-right: max(20px, calc(50% - 600px));
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-top">
+            <div class="user-info">
+                <img src="../assets/logo/logo.png" alt="Padud"
+                    style="height: 32px; width: auto; object-fit: contain; margin-right: 4px;"
+                    onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMUEyQjRDIj48cGF0aCBkPSJNMiwxOXYyaDIwdi0ySDJ6TTE5LjYsMTcuNGMwLjUtMC44LDAuOS0xLjcsMS4xLTIuN2MwLjEtMC4zLDAuMS0wLjcsMC4xLTFoMmMwLDEuNS0wLjQsMi45LTEuMSw0LjFMMTkuNiwxNy40ek01LjUsMTcuNEw0LjQsMTguOGMtMC43LTEuMi0xLjEtMi42LTEuMS00LjFoMmMwLDAuNCwwLDAuOCwwLjEsMS4xQzUuNiwxNS43LDUuNSwxNi42LDUuNSwxNy40ek0xMiwyMGMtNC40LDAtOC0zLjYtOC04VjRoMTZ2OEMyMCwxNi40LDE2LjQsMjAsMTIsMjB6TTEyLDZjLTMuMywwLTYsMi43LTYsNnMyLjcsNiw2LDZzNi0yLjcsNi02UzE1LjMsNiwxMiw2eiIvPjwvc3ZnPg=='">
+                <div class="user-details" style="display: flex; flex-direction: column; justify-content: center;">
+                    <span
+                        style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Nomor
+                        Meja</span>
+                    <h4
+                        style="font-size: 14px; margin: 0; color: var(--primary-navy); font-weight: 800; line-height: 1;">
+                        A-12</h4>
+                </div>
+            </div>
+            <div class="header-actions">
+                <?php if(!isset($is_member) || !$is_member): ?>
+                <button
+                    style="font-size: 11px; font-weight: 700; color: var(--primary-navy); background: transparent; padding: 6px 10px; border-radius: 12px; border: 1px solid rgba(26,43,76,0.1);"
+                    onclick="window.location.href='register.html'">Masuk</button>
+                <button
+                    style="font-size: 11px; font-weight: 700; color: white; background: var(--primary-navy); padding: 6px 12px; border-radius: 12px; box-shadow: 0 4px 10px rgba(26,43,76,0.2);"
+                    onclick="window.location.href='register.html'">Daftar</button>
+                <?php else: ?>
+                <div style="font-size: 13px; font-weight: 800; color: var(--primary-navy); margin-right: 8px;">
+                    <?php echo $user_name; ?>
+                </div>
+                <?php endif; ?>
+                <button class="action-icon" onclick="window.location.href='notifications.html'">
+                    <i class="fa-regular fa-bell"></i>
+                    <div class="badge-count" style="right: 4px; top: -2px;">1</div>
+                </button>
+            </div>
+        </div>
+    </header>
+
+
+
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+        <div class="empty-icon"><i class="fa-solid fa-basket-shopping"></i></div>
+        <h3 class="empty-title">Keranjang masih kosong</h3>
+        <p class="empty-desc">Yuk, mulai pilih menu favoritmu sekarang!</p>
+        <button class="btn-start" onclick="window.location.href='menu.html'">Pesan Menu Sekarang</button>
+    </div>
+
+    <!-- Voucher Selection Button -->
+    <div class="voucher-box" id="voucherBox" style="margin: 20px 20px 5px; display: none;">
+        <div style="background: linear-gradient(135deg, var(--accent-gold) 0%, #FF8C00 100%); padding: 2px; border-radius: 18px; box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3); transition: var(--transition); cursor: pointer;" onclick="openVoucherModal()">
+            <div style="background: white; border-radius: 16px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden;">
+                <!-- Decorative background elements -->
+                <i class="fa-solid fa-ticket" style="position: absolute; right: -15px; bottom: -20px; font-size: 90px; color: rgba(212, 175, 55, 0.05); transform: rotate(-15deg); pointer-events: none;"></i>
+                
+                <div style="display: flex; align-items: center; gap: 16px; position: relative; z-index: 2; flex-grow: 1;">
+                    <div style="width: 48px; height: 48px; background: rgba(212, 175, 55, 0.15); border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="fa-solid fa-ticket" style="color: #FF8C00; font-size: 24px; transform: rotate(-10deg);"></i>
+                    </div>
+                    <div>
+                        <span id="activeVoucherLabel" style="display: block; font-size: 16px; font-weight: 800; color: var(--primary-navy); margin-bottom: 4px; letter-spacing: -0.3px;">Makin Hemat Pakai Promo!</span>
+                        <span id="activeVoucherSub" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-light);">Klik untuk pilih voucher diskonmu</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px; position: relative; z-index: 2;">
+                    <button id="btnCancelVoucher" style="display: none; width: 32px; height: 32px; align-items: center; justify-content: center; background: #FFF0F0; color: #FF4757; border-radius: 50%; border: none; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.1);" onclick="selectVoucher(0, 'Makin Hemat Pakai Promo!'); event.stopPropagation();">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div id="btnVoucherChevron" style="background: linear-gradient(135deg, var(--accent-gold), #FF8C00); color: white; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 800; box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);">
+                        Pilih
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart List -->
+    <div class="cart-list" id="cartList">
+        <!-- Rendered via JS -->
+    </div>
+
+    <!-- Sticky Summary -->
+    <div class="summary-sheet" id="summarySheet">
+        <div class="summary-row">
+            <span>Subtotal (<span id="sum-qty">0</span> item)</span>
+            <span id="sum-subtotal">Rp 0</span>
+        </div>
+        
+        <div class="summary-row discount" id="row-discount" style="display: none;">
+            <span>Diskon Member (10%)</span>
+            <span id="sum-discount">-Rp 0</span>
+        </div>
+
+        <div class="summary-row discount" id="row-voucher" style="display: none; color: #f39c12;">
+            <span>Diskon Voucher</span>
+            <span id="sum-voucher">-Rp 0</span>
+        </div>
+        
+        <div class="summary-row">
+            <span>Biaya penanganan</span>
+            <span id="sum-tax">+Rp 0</span>
+        </div>
+        
+        <div class="summary-row total">
+            <span>Total Pembayaran</span>
+            <span id="sum-total">Rp 0</span>
+        </div>
+
+        <button class="btn-checkout" onclick="checkout()">
+            <span>Checkout Sekarang</span>
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <span id="btn-total">Rp 0</span>
+                <div class="checkout-icon"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+        </button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-msg">Item diperbarui</span>
+    </div>
+
+    <!-- Voucher Modal -->
+    <div class="overlay" id="overlayVoucher" onclick="closeVoucherModal()"></div>
+    <div class="modal" id="voucherModal">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--primary-navy);">Pilih Voucher</h3>
+            <button onclick="closeVoucherModal()" style="font-size: 20px; color: var(--text-light);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-bottom: 20px;">
+            <div class="voucher-item" style="border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--primary-navy); margin-bottom: 4px;">Potongan Harga 10RB</h4>
+                    <p style="font-size: 11px; color: var(--text-light);">Diskon Rp 10.000, Min. belanja Rp 50.000</p>
+                </div>
+                <button onclick="selectVoucher(10000, 'Potongan Harga 10RB')" style="background: var(--primary-navy); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;">Pakai</button>
+            </div>
+            <div class="voucher-item" style="border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--primary-navy); margin-bottom: 4px;">Diskon Kilat 5RB</h4>
+                    <p style="font-size: 11px; color: var(--text-light);">Diskon Rp 5.000, Tanpa minimum belanja</p>
+                </div>
+                <button onclick="selectVoucher(5000, 'Diskon Kilat 5RB')" style="background: var(--primary-navy); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;">Pakai</button>
+            </div>
+            <div class="voucher-item" style="border: 1px dashed var(--danger); border-radius: 12px; padding: 15px; display: flex; justify-content: center; align-items: center; margin-top: 10px; cursor: pointer;" onclick="selectVoucher(0, 'Gunakan Promo / Voucher')">
+                <h4 style="font-size: 13px; font-weight: 700; color: var(--danger);">Hapus Penggunaan Voucher</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Dashboard -->
+    <nav class="bottom-nav">
+        <a href="menu.html" class="bnav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Beranda</span>
+        </a>
+        <a href="history.html" class="bnav-item">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Riwayat</span>
+        </a>
+        <a href="cart.html" class="bnav-item bnav-cart-wrapper active">
+            <i class="fa-solid fa-basket-shopping"></i>
+            <span>Keranjang</span>
+            <div class="badge-count" id="nav-cart-badge" style="display:none;">0</div>
+        </a>
+        <a href="profile.html" class="bnav-item">
+            <i class="fa-regular fa-user"></i>
+            <span>Profil</span>
+        </a>
+    </nav>
+
+<script>
+    // Configuration & State
+    const isMember = "<?php echo $is_member ? 'true' : 'false'; ?>" === "true";
+    const TAX_FEE = 2500;
+    let activeVoucher = 0;
+    
+    window.openVoucherModal = () => {
+        document.getElementById('overlayVoucher').classList.add('active');
+        document.getElementById('voucherModal').classList.add('active');
+    };
+
+    window.closeVoucherModal = () => {
+        document.getElementById('overlayVoucher').classList.remove('active');
+        document.getElementById('voucherModal').classList.remove('active');
+    };
+
+    window.selectVoucher = (amount, label) => {
+        activeVoucher = amount;
+        document.getElementById('activeVoucherLabel').innerText = label;
+        const sub = document.getElementById('activeVoucherSub');
+        if (amount > 0) {
+            document.getElementById('activeVoucherLabel').style.color = 'var(--success)';
+            if(sub) sub.style.display = 'none';
+            document.getElementById('btnCancelVoucher').style.display = 'flex';
+            document.getElementById('btnVoucherChevron').style.display = 'none';
+            showToast("Voucher berhasil dipakai");
+        } else {
+            document.getElementById('activeVoucherLabel').style.color = 'var(--primary-navy)';
+            if(sub) sub.style.display = 'block';
+            document.getElementById('btnCancelVoucher').style.display = 'none';
+            document.getElementById('btnVoucherChevron').style.display = 'inline-block';
+            showToast("Voucher dilepas");
+        }
+        renderCart();
+        closeVoucherModal();
+    };
+
+    window.updateNote = (index, value) => {
+        let cart = getCart();
+        if(cart[index]) {
+            cart[index].notes = value;
+            saveCart(cart);
+            showToast("Catatan disimpan");
+        }
+    };
+    
+    // Format Currency
+    const formatRupiah = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+
+    // Get Cart from LocalStorage
+    const getCart = () => JSON.parse(localStorage.getItem('padud_cart')) || [];
+    const saveCart = (cart) => localStorage.setItem('padud_cart', JSON.stringify(cart));
+
+    // Toast Notification
+    let toastTimer;
+    const showToast = (msg, isError = false) => {
+        const toast = document.getElementById('toast');
+        const icon = toast.querySelector('i');
+        document.getElementById('toast-msg').innerText = msg;
+        
+        if(isError) {
+            icon.className = 'fa-solid fa-circle-exclamation';
+            icon.style.color = '#FF4757';
+        } else {
+            icon.className = 'fa-solid fa-circle-check';
+            icon.style.color = '#25D366';
+        }
+
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    };
+
+    // Render Cart Items
+    const renderCart = () => {
+        const cart = getCart();
+        const listContainer = document.getElementById('cartList');
+        const emptyState = document.getElementById('emptyState');
+        const summarySheet = document.getElementById('summarySheet');
+
+        listContainer.innerHTML = '';
+
+        if (cart.length === 0) {
+            emptyState.style.display = 'flex';
+            summarySheet.classList.add('hidden');
+            document.getElementById('voucherBox').style.display = 'none';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        summarySheet.classList.remove('hidden');
+        document.getElementById('voucherBox').style.display = 'block';
+
+        cart.forEach((item, index) => {
+            const itemHTML = `
+                <div class="cart-item" id="cart-item-${index}">
+                    <img src="${item.img}" class="item-img" alt="${item.name}">
+                    <div class="item-details">
+                        <div class="item-header">
+                            <div class="item-name">${item.name}</div>
+                            <button class="btn-delete" onclick="removeItem(${index})"><i class="fa-regular fa-trash-can"></i></button>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-pen-to-square" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text-light);"></i>
+                                <input type="text" value="${item.notes || ''}" placeholder="Tambahkan pesan/catatan..." onchange="updateNote(${index}, this.value)" style="width: 100%; border: none; background: rgba(0,0,0,0.03); border-radius: 8px; padding: 8px 10px 8px 28px; font-size: 12px; color: var(--text-dark); outline: none; transition: var(--transition);">
+                            </div>
+                        </div>
+                        <div class="item-bottom">
+                            <div class="item-price">${formatRupiah(item.price)}</div>
+                            <div class="qty-control">
+                                <button class="btn-qty" onclick="updateQty(${index}, -1)">-</button>
+                                <div class="qty-val">${item.qty}</div>
+                                <button class="btn-qty" onclick="updateQty(${index}, 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            listContainer.innerHTML += itemHTML;
+        });
+
+        calculateSummary(cart);
+    };
+
+    // Update Quantity
+    window.updateQty = (index, change) => {
+        let cart = getCart();
+        if(cart[index]) {
+            cart[index].qty += change;
+            if(cart[index].qty <= 0) {
+                removeItem(index);
+                return;
+            }
+            saveCart(cart);
+            renderCart();
+            
+            // Haptic/Visual feedback could be added here
+            if(change > 0) showToast("Jumlah ditambahkan");
+            else showToast("Jumlah dikurangi");
+        }
+    };
+
+    // Remove Item with Animation
+    window.removeItem = (index) => {
+        let cart = getCart();
+        const itemEl = document.getElementById(`cart-item-${index}`);
+        
+        if(itemEl) {
+            itemEl.classList.add('removing');
+            setTimeout(() => {
+                const removedName = cart[index].name;
+                cart.splice(index, 1);
+                saveCart(cart);
+                renderCart();
+                showToast(`${removedName} dihapus`, true);
+            }, 300); // Matches CSS transition time
+        }
+    };
+
+    // Calculate Totals
+    const calculateSummary = (cart) => {
+        let totalQty = 0;
+        let subtotal = 0;
+
+        cart.forEach(item => {
+            totalQty += item.qty;
+            subtotal += (item.price * item.qty);
+        });
+
+        let discount = isMember ? (subtotal * 0.10) : 0;
+        let grandTotal = subtotal - discount - activeVoucher + TAX_FEE;
+        if(grandTotal < 0) grandTotal = 0;
+
+        // Update Nav Badge
+        const navBadge = document.getElementById('nav-cart-badge');
+        if (navBadge) {
+            if (totalQty > 0) {
+                navBadge.style.display = 'flex';
+                navBadge.innerText = totalQty;
+            } else {
+                navBadge.style.display = 'none';
+            }
+        }
+
+        // Update UI DOM
+        document.getElementById('sum-qty').innerText = totalQty;
+        document.getElementById('sum-subtotal').innerText = formatRupiah(subtotal);
+        
+        const rowDiscount = document.getElementById('row-discount');
+        if(discount > 0) {
+            rowDiscount.style.display = 'flex';
+            document.getElementById('sum-discount').innerText = '-' + formatRupiah(discount);
+        } else {
+            rowDiscount.style.display = 'none';
+        }
+
+        const rowVoucher = document.getElementById('row-voucher');
+        if(activeVoucher > 0) {
+            rowVoucher.style.display = 'flex';
+            document.getElementById('sum-voucher').innerText = '-' + formatRupiah(activeVoucher);
+        } else {
+            rowVoucher.style.display = 'none';
+        }
+
+        document.getElementById('sum-tax').innerText = formatRupiah(TAX_FEE);
+        document.getElementById('sum-total').innerText = formatRupiah(grandTotal);
+        document.getElementById('btn-total').innerText = formatRupiah(grandTotal);
+    };
+
+    // Checkout Action
+    window.checkout = () => {
+        const btn = document.querySelector('.btn-checkout');
+        const originalHTML = btn.innerHTML;
+        
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span style="margin-left: 10px;">Memproses...</span>`;
+        btn.style.justifyContent = 'center';
+
+        // Save voucher to local storage
+        localStorage.setItem('padud_active_voucher', activeVoucher);
+        localStorage.setItem('padud_active_voucher_label', document.getElementById('activeVoucherLabel').innerText);
+
+        // Simulate network request and redirect
+        setTimeout(() => {
+            window.location.href = 'payment.html';
+        }, 800);
+    };
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCart();
+    });
+
+</script>
+
+    <!-- Bottom Navigation Dashboard -->
+    <nav class="bottom-nav">
+        <a href="menu.html" class="bnav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Beranda</span>
+        </a>
+        <a href="history.html" class="bnav-item">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Riwayat</span>
+        </a>
+        <a href="cart.html" class="bnav-item bnav-cart-wrapper active">
+            <i class="fa-solid fa-basket-shopping"></i>
+            <span>Keranjang</span>
+            <div class="badge-count" id="nav-cart-badge" style="display:none; right: 15px; top: -5px;">0</div>
+        </a>
+        <a href="profile.html" class="bnav-item">
+            <i class="fa-regular fa-user"></i>
+            <span>Profil</span>
+        </a>
+    </nav>
+
+</body>
+</html>
